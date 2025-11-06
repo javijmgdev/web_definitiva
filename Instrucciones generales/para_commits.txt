@@ -1,0 +1,16 @@
+Paso 1: Detener el Servidor de Desarrollo
+Si tienes npm run dev ejecutándose en la terminal:
+
+Haz clic en la terminal activa
+
+Presiona Ctrl + C para detener el servidor
+
+Espera a que aparezca el prompt de nuevo (algo como PS G:\Web definitiva\portfolio-dinamico>)
+
+Paso 2: (Opcional) Guardar Cambios en Git
+Si has hecho cambios desde el último commit:
+
+
+git add .
+git commit -m "Trabajo de hoy - Portfolio configurado"
+git push origin main 
