@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaTimes, FaCheck, FaSpinner, FaUpload, FaLink } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
@@ -8,7 +8,7 @@ export default function AdminPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [uploadMode, setUploadMode] = useState('url'); // 'url' o 'upload'
+  const [uploadMode, setUploadMode] = useState('url');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -26,17 +26,37 @@ export default function AdminPanel() {
     settings: ''
   });
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
+
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
       alert('Por favor, selecciona una imagen válida');
       return;
     }
 
-    // Validar tamaño (máximo 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('La imagen es demasiado grande. Máximo 5MB');
       return;
@@ -44,7 +64,6 @@ export default function AdminPanel() {
 
     setSelectedFile(file);
     
-    // Crear preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreviewUrl(reader.result);
@@ -54,12 +73,10 @@ export default function AdminPanel() {
 
   const uploadImage = async (file) => {
     try {
-      // Generar nombre único para el archivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // Subir a Supabase Storage
       const { data, error } = await supabase.storage
         .from('album-photos')
         .upload(filePath, file, {
@@ -69,7 +86,6 @@ export default function AdminPanel() {
 
       if (error) throw error;
 
-      // Obtener URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('album-photos')
         .getPublicUrl(filePath);
@@ -88,7 +104,6 @@ export default function AdminPanel() {
     try {
       let imageUrl = formData.image;
 
-      // Si el modo es 'upload', subir la imagen primero
       if (uploadMode === 'upload') {
         if (!selectedFile) {
           alert('Por favor, selecciona una imagen');
@@ -101,14 +116,12 @@ export default function AdminPanel() {
         setUploadProgress(100);
       }
 
-      // Validar que haya URL de imagen
       if (!imageUrl) {
         alert('Por favor, proporciona una imagen (URL o archivo)');
         setLoading(false);
         return;
       }
 
-      // Guardar en la base de datos
       const photoData = {
         ...formData,
         image: imageUrl
@@ -131,7 +144,6 @@ export default function AdminPanel() {
         setUploadProgress(0);
       }, 2000);
       
-      // Resetear formulario
       setFormData({
         title: '',
         description: '',
@@ -178,327 +190,343 @@ export default function AdminPanel() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="admin-panel-modal fixed inset-0 z-[9998] bg-black/90 flex items-center justify-center p-4 overflow-y-auto"
+          className="admin-panel-modal fixed inset-0 z-[9998] bg-black/90 flex items-center justify-center p-4"
+          style={{ 
+            overflow: 'hidden',
+            touchAction: 'none'
+          }}
         >
           <motion.div
             initial={{ scale: 0.9, y: 50 }}
             animate={{ scale: 1, y: 0 }}
-            className="bg-gray-900 rounded-3xl p-8 max-w-3xl w-full my-8"
+            className="bg-gray-900 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+            style={{ 
+              touchAction: 'auto'
+            }}
           >
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-4xl font-black text-white">
+            {/* Header fijo */}
+            <div className="flex justify-between items-center p-8 pb-4 flex-shrink-0">
+              <h2 className="text-3xl md:text-4xl font-black text-white">
                 <span style={{ color: 'var(--color-accent)' }}>Añadir</span> al Álbum
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
                 disabled={loading}
-                className="cursor-pointer w-10 h-10 rounded-full bg-gray-800 hover:bg-red-500 text-white transition-colors flex items-center justify-center disabled:opacity-50"
+                className="cursor-pointer w-10 h-10 rounded-full bg-gray-800 hover:bg-red-500 text-white transition-colors flex items-center justify-center disabled:opacity-50 flex-shrink-0"
               >
                 <FaTimes />
               </button>
             </div>
 
-            {showSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 bg-green-500 text-white rounded-lg flex items-center gap-3"
-              >
-                <FaCheck />
-                <span className="font-semibold">¡Foto añadida al álbum exitosamente!</span>
-              </motion.div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Selector de modo de imagen */}
-              <div>
-                <label className="block text-sm font-semibold text-[var(--color-accent)] mb-3">
-                  Método de Imagen *
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setUploadMode('url')}
-                    disabled={loading}
-                    className={`cursor-pointer p-4 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
-                      uploadMode === 'url'
-                        ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                        : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600'
-                    } disabled:opacity-50`}
-                  >
-                    <FaLink />
-                    <span className="font-semibold">URL de Imagen</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setUploadMode('upload')}
-                    disabled={loading}
-                    className={`cursor-pointer p-4 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
-                      uploadMode === 'upload'
-                        ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                        : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600'
-                    } disabled:opacity-50`}
-                  >
-                    <FaUpload />
-                    <span className="font-semibold">Subir Archivo</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Campo de imagen según el modo */}
-              {uploadMode === 'url' ? (
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    URL de la Imagen *
-                  </label>
-                  <input
-                    type="url"
-                    name="image"
-                    value={formData.image}
-                    onChange={handleChange}
-                    required
-                    disabled={loading}
-                    placeholder="https://i.imgur.com/ejemplo.jpg"
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Subir Imagen *
-                  </label>
-                  
-                  {/* Preview de imagen */}
-                  {previewUrl && (
-                    <div className="mb-4 relative aspect-video rounded-lg overflow-hidden bg-gray-800">
-                      <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedFile(null);
-                          setPreviewUrl('');
-                        }}
-                        className="cursor-pointer absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
-                      >
-                        <FaTimes size={14} />
-                      </button>
-                    </div>
-                  )}
-
-                  <label className="cursor-pointer block">
-                    <div className="border-2 border-dashed border-gray-600 hover:border-[var(--color-accent)] rounded-lg p-8 text-center transition-all">
-                      <FaUpload className="text-4xl text-gray-500 mx-auto mb-3" />
-                      <p className="text-gray-400 mb-1">
-                        {selectedFile ? selectedFile.name : 'Haz clic para seleccionar una imagen'}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        PNG, JPG, WEBP (máximo 5MB)
-                      </p>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                      disabled={loading}
-                      className="hidden"
-                    />
-                  </label>
-
-                  {/* Barra de progreso */}
-                  {uploadProgress > 0 && uploadProgress < 100 && (
-                    <div className="mt-4">
-                      <div className="w-full bg-gray-700 rounded-full h-2">
-                        <div
-                          className="bg-[var(--color-accent)] h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                      <p className="text-sm text-gray-400 mt-2 text-center">
-                        Subiendo... {uploadProgress}%
-                      </p>
-                    </div>
-                  )}
-                </div>
+            {/* Contenido con scroll */}
+            <div 
+              className="overflow-y-auto px-8 pb-8 flex-1"
+              style={{
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain'
+              }}
+            >
+              {showSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-green-500 text-white rounded-lg flex items-center gap-3"
+                >
+                  <FaCheck />
+                  <span className="font-semibold">¡Foto añadida al álbum exitosamente!</span>
+                </motion.div>
               )}
 
-              {/* Resto de campos del formulario */}
-              <div className="grid md:grid-cols-2 gap-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Selector de modo */}
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-3">
+                    Método de Imagen *
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setUploadMode('url')}
+                      disabled={loading}
+                      className={`cursor-pointer p-4 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
+                        uploadMode === 'url'
+                          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                          : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600'
+                      } disabled:opacity-50`}
+                    >
+                      <FaLink />
+                      <span className="font-semibold text-sm">URL</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setUploadMode('upload')}
+                      disabled={loading}
+                      className={`cursor-pointer p-4 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
+                        uploadMode === 'upload'
+                          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                          : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600'
+                      } disabled:opacity-50`}
+                    >
+                      <FaUpload />
+                      <span className="font-semibold text-sm">Subir</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Campo de imagen */}
+                {uploadMode === 'url' ? (
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      URL de la Imagen *
+                    </label>
+                    <input
+                      type="url"
+                      name="image"
+                      value={formData.image}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                      placeholder="https://i.imgur.com/ejemplo.jpg"
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Subir Imagen *
+                    </label>
+                    
+                    {previewUrl && (
+                      <div className="mb-4 relative aspect-video rounded-lg overflow-hidden bg-gray-800">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setPreviewUrl('');
+                          }}
+                          className="cursor-pointer absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
+                        >
+                          <FaTimes size={14} />
+                        </button>
+                      </div>
+                    )}
+
+                    <label className="cursor-pointer block">
+                      <div className="border-2 border-dashed border-gray-600 hover:border-[var(--color-accent)] rounded-lg p-6 text-center transition-all">
+                        <FaUpload className="text-3xl text-gray-500 mx-auto mb-2" />
+                        <p className="text-gray-400 mb-1 text-sm">
+                          {selectedFile ? selectedFile.name : 'Seleccionar imagen'}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          PNG, JPG, WEBP (máx 5MB)
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        disabled={loading}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {uploadProgress > 0 && uploadProgress < 100 && (
+                      <div className="mt-4">
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className="bg-[var(--color-accent)] h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                        <p className="text-sm text-gray-400 mt-2 text-center">
+                          Subiendo... {uploadProgress}%
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Resto de campos */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Título *
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Categoría *
+                    </label>
+                    <input
+                      type="text"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                      placeholder="Ej: Retratos, Paisaje"
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Título *
+                    Descripción *
                   </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
+                  <textarea
+                    name="description"
+                    value={formData.description}
                     onChange={handleChange}
                     required
                     disabled={loading}
+                    rows="3"
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Categoría *
-                  </label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    required
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Autor
+                    </label>
+                    <input
+                      type="text"
+                      name="author"
+                      value={formData.author}
+                      onChange={handleChange}
+                      disabled={loading}
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Fecha
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      disabled={loading}
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Ubicación
+                    </label>
+                    <input
+                      type="text"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      disabled={loading}
+                      placeholder="Ej: Sevilla, España"
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Cámara
+                    </label>
+                    <input
+                      type="text"
+                      name="camera"
+                      value={formData.camera}
+                      onChange={handleChange}
+                      disabled={loading}
+                      placeholder="Ej: Canon EOS R6"
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Lente
+                    </label>
+                    <input
+                      type="text"
+                      name="lens"
+                      value={formData.lens}
+                      onChange={handleChange}
+                      disabled={loading}
+                      placeholder="Ej: RF 85mm f/1.2"
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
+                      Configuración
+                    </label>
+                    <input
+                      type="text"
+                      name="settings"
+                      value={formData.settings}
+                      onChange={handleChange}
+                      disabled={loading}
+                      placeholder="Ej: f/1.8, 1/200s, ISO 100"
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+
+                {/* Botones */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading || showSuccess}
+                    className="cursor-pointer flex-1 px-8 py-4 bg-[var(--color-accent)] text-black font-bold text-lg rounded-full hover:shadow-2xl hover:shadow-[var(--color-accent)]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  >
+                    {loading ? (
+                      <>
+                        <FaSpinner className="animate-spin" />
+                        {uploadProgress > 0 ? 'Subiendo...' : 'Guardando...'}
+                      </>
+                    ) : showSuccess ? (
+                      <>
+                        <FaCheck />
+                        Guardado
+                      </>
+                    ) : (
+                      'Añadir al Álbum'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
                     disabled={loading}
-                    placeholder="Ej: Retratos, Paisaje, Eventos"
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
+                    className="cursor-pointer px-8 py-4 bg-gray-800 text-white font-bold text-lg rounded-full hover:bg-gray-700 transition-all duration-300 disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                  Descripción *
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                  rows="3"
-                  className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Autor
-                  </label>
-                  <input
-                    type="text"
-                    name="author"
-                    value={formData.author}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Fecha
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Ubicación
-                  </label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    disabled={loading}
-                    placeholder="Ej: Sevilla, España"
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Cámara
-                  </label>
-                  <input
-                    type="text"
-                    name="camera"
-                    value={formData.camera}
-                    onChange={handleChange}
-                    disabled={loading}
-                    placeholder="Ej: Canon EOS R6"
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Lente
-                  </label>
-                  <input
-                    type="text"
-                    name="lens"
-                    value={formData.lens}
-                    onChange={handleChange}
-                    disabled={loading}
-                    placeholder="Ej: RF 85mm f/1.2"
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
-                    Configuración
-                  </label>
-                  <input
-                    type="text"
-                    name="settings"
-                    value={formData.settings}
-                    onChange={handleChange}
-                    disabled={loading}
-                    placeholder="Ej: f/1.8, 1/200s, ISO 100"
-                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="submit"
-                  disabled={loading || showSuccess}
-                  className="cursor-pointer flex-1 px-8 py-4 bg-[var(--color-accent)] text-black font-bold text-lg rounded-full hover:shadow-2xl hover:shadow-[var(--color-accent)]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                >
-                  {loading ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      {uploadProgress > 0 ? 'Subiendo...' : 'Guardando...'}
-                    </>
-                  ) : showSuccess ? (
-                    <>
-                      <FaCheck />
-                      Guardado
-                    </>
-                  ) : (
-                    'Añadir al Álbum'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  disabled={loading}
-                  className="cursor-pointer px-8 py-4 bg-gray-800 text-white font-bold text-lg rounded-full hover:bg-gray-700 transition-all duration-300 disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </motion.div>
         </motion.div>
       )}
