@@ -1,33 +1,50 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 export default function CustomCursor() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const requestRef = useRef();
 
   useEffect(() => {
-    const mouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    let currentX = 0;
+    let currentY = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    const handleMouseMove = (e) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
     };
 
     const handleMouseOver = (e) => {
-      // Detectar hover sobre elementos interactivos
-      const isInteractive = e.target.tagName === 'A' || 
-                           e.target.tagName === 'BUTTON' || 
-                           e.target.closest('a') || 
-                           e.target.closest('button') ||
-                           e.target.classList.contains('cursor-pointer');
+      // Buscar el elemento interactivo más cercano
+      const interactiveElement = e.target.closest('a, button, input, textarea, select, [role="button"]');
       
-      setIsHovering(isInteractive);
+      setIsHovering(!!interactiveElement);
     };
 
-    window.addEventListener('mousemove', mouseMove);
+    const animate = () => {
+      // Smooth lerp (interpolación lineal) para suavizar el movimiento
+      const lerp = 0.15;
+      currentX += (targetX - currentX) * lerp;
+      currentY += (targetY - currentY) * lerp;
+
+      setMousePosition({ x: currentX, y: currentY });
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseover', handleMouseOver);
+    requestRef.current = requestAnimationFrame(animate);
 
     return () => {
-      window.removeEventListener('mousemove', mouseMove);
+      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseover', handleMouseOver);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
     };
   }, []);
 
@@ -39,13 +56,14 @@ export default function CustomCursor() {
         animate={{
           x: mousePosition.x - 16,
           y: mousePosition.y - 16,
-          scale: isHovering ? 2 : 1,
+          scale: isHovering ? 1.5 : 1,
+          opacity: isHovering ? 0.8 : 1,
         }}
         transition={{
           type: "spring",
-          stiffness: 300,
-          damping: 20,
-          mass: 0.3
+          stiffness: 150,
+          damping: 15,
+          mass: 0.1
         }}
         style={{
           width: '32px',
@@ -56,23 +74,16 @@ export default function CustomCursor() {
           pointerEvents: 'none',
           zIndex: 99999,
           mixBlendMode: 'difference',
+          willChange: 'transform',
         }}
       />
       
       {/* Punto interior */}
       <motion.div
         className="cursor-outline"
-        animate={{
+        style={{
           x: mousePosition.x - 4,
           y: mousePosition.y - 4,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 600,
-          damping: 30,
-          mass: 0.1
-        }}
-        style={{
           width: '8px',
           height: '8px',
           borderRadius: '50%',
@@ -80,6 +91,7 @@ export default function CustomCursor() {
           position: 'fixed',
           pointerEvents: 'none',
           zIndex: 99999,
+          willChange: 'transform',
         }}
       />
     </>

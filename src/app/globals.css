@@ -89,3 +89,40 @@ select,
 a {
   pointer-events: auto;
 }
+
+/* ===== FIX PARA CURSOR PERSONALIZADO ===== */
+
+/* Evitar que el texto interfiera con el cursor */
+h1, h2, h3, h4, h5, h6, p, span, div, section, article {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Permitir selección solo en contenido editable */
+input,
+textarea,
+[contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Asegurar que los elementos de texto no interfieran con el cursor */
+* {
+  cursor: none !important;
+}
+
+/* Elementos interactivos deben ser detectables pero sin cursor nativo */
+a, button, input, textarea, select, [role="button"] {
+  cursor: none !important;
+}
+
+/* Mejorar rendimiento del cursor personalizado */
+.cursor-dot,
+.cursor-outline {
+  pointer-events: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
