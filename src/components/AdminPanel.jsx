@@ -58,27 +58,33 @@ export default function AdminPanel() {
 
   return (
     <>
+      {/* Botón flotante */}
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.1 }}
         onClick={() => setIsOpen(true)}
         className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-[var(--color-accent)] text-black shadow-2xl hover:shadow-[var(--color-accent)]/50 flex items-center justify-center transition-all duration-300"
+        style={{ cursor: 'pointer' }}
       >
         <FaPlus size={24} />
       </motion.button>
 
+      {/* Panel modal */}
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4 overflow-y-auto"
+          className="admin-panel-modal fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4 overflow-y-auto"
+          style={{ cursor: 'default' }}
         >
           <motion.div
             initial={{ scale: 0.9, y: 50 }}
             animate={{ scale: 1, y: 0 }}
             className="bg-gray-900 rounded-3xl p-8 max-w-3xl w-full my-8"
+            style={{ cursor: 'default' }}
           >
+            {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-4xl font-black text-white">
                 <span style={{ color: 'var(--color-accent)' }}>Añadir</span> Foto
@@ -86,12 +92,15 @@ export default function AdminPanel() {
               <button
                 onClick={() => setIsOpen(false)}
                 className="w-10 h-10 rounded-full bg-gray-800 hover:bg-red-500 text-white transition-colors flex items-center justify-center"
+                style={{ cursor: 'pointer' }}
               >
                 <FaTimes />
               </button>
             </div>
 
+            {/* Formulario */}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Fila 1: Título y Categoría */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
@@ -104,6 +113,7 @@ export default function AdminPanel() {
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'text' }}
                   />
                 </div>
 
@@ -119,10 +129,12 @@ export default function AdminPanel() {
                     required
                     placeholder="Ej: Retratos, Paisaje, Eventos"
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'text' }}
                   />
                 </div>
               </div>
 
+              {/* URL de Imagen */}
               <div>
                 <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
                   URL de la Imagen *
@@ -135,9 +147,11 @@ export default function AdminPanel() {
                   required
                   placeholder="https://i.imgur.com/ejemplo.jpg"
                   className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                  style={{ cursor: 'text' }}
                 />
               </div>
 
+              {/* Descripción */}
               <div>
                 <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
                   Descripción *
@@ -149,9 +163,11 @@ export default function AdminPanel() {
                   required
                   rows="3"
                   className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                  style={{ cursor: 'text' }}
                 />
               </div>
 
+              {/* Fila 2: Autor y Fecha */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
@@ -163,6 +179,7 @@ export default function AdminPanel() {
                     value={formData.author}
                     onChange={handleChange}
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'text' }}
                   />
                 </div>
 
@@ -176,10 +193,12 @@ export default function AdminPanel() {
                     value={formData.date}
                     onChange={handleChange}
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'pointer' }}
                   />
                 </div>
               </div>
 
+              {/* Fila 3: Ubicación y Cámara */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
@@ -192,6 +211,7 @@ export default function AdminPanel() {
                     onChange={handleChange}
                     placeholder="Ej: Sevilla, España"
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'text' }}
                   />
                 </div>
 
@@ -206,10 +226,12 @@ export default function AdminPanel() {
                     onChange={handleChange}
                     placeholder="Ej: Canon EOS R6"
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'text' }}
                   />
                 </div>
               </div>
 
+              {/* Fila 4: Lente y Configuración */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-[var(--color-accent)] mb-2">
@@ -222,6 +244,7 @@ export default function AdminPanel() {
                     onChange={handleChange}
                     placeholder="Ej: RF 85mm f/1.2"
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'text' }}
                   />
                 </div>
 
@@ -236,14 +259,17 @@ export default function AdminPanel() {
                     onChange={handleChange}
                     placeholder="Ej: f/1.8, 1/200s, ISO 100"
                     className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{ cursor: 'text' }}
                   />
                 </div>
               </div>
 
+              {/* Botones de acción */}
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
                   className="flex-1 px-8 py-4 bg-[var(--color-accent)] text-black font-bold text-lg rounded-full hover:shadow-2xl hover:shadow-[var(--color-accent)]/50 transition-all duration-300"
+                  style={{ cursor: 'pointer' }}
                 >
                   Generar Código JSON
                 </button>
@@ -251,6 +277,7 @@ export default function AdminPanel() {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   className="px-8 py-4 bg-gray-800 text-white font-bold text-lg rounded-full hover:bg-gray-700 transition-all duration-300"
+                  style={{ cursor: 'pointer' }}
                 >
                   Cancelar
                 </button>

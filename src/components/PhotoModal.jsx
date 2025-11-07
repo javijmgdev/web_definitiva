@@ -13,6 +13,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/95"
         onClick={onClose}
+        style={{ cursor: 'default' }}  // ← AÑADIR ESTA LÍNEA
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -21,10 +22,12 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
           transition={{ type: "spring", duration: 0.5 }}
           className="relative max-w-7xl w-full bg-gray-900 rounded-3xl overflow-hidden shadow-2xl"
           onClick={(e) => e.stopPropagation()}
+          style={{ cursor: 'default' }}  // ← AÑADIR ESTA LÍNEA
         >
           <button
             onClick={onClose}
             className="absolute top-4 right-4 z-10 w-12 h-12 rounded-full bg-black/50 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center"
+            style={{ cursor: 'pointer' }}  // ← AÑADIR ESTA LÍNEA
           >
             <FaTimes size={20} />
           </button>

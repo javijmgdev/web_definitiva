@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 export default function CustomCursor() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
 
   useEffect(() => {
     const mouseMove = (e) => {
@@ -12,8 +13,22 @@ export default function CustomCursor() {
     };
 
     const handleMouseOver = (e) => {
-      if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || 
-          e.target.closest('a') || e.target.closest('button')) {
+      // Ocultar cursor si está sobre modales o formularios
+      const isOverModal = e.target.closest('[role="dialog"]') || 
+                          e.target.closest('.admin-panel-modal') ||
+                          e.target.closest('.photo-modal');
+      
+      setIsHidden(!!isOverModal);
+
+      // Detectar hover sobre elementos interactivos
+      if (e.target.tagName === 'A' || 
+          e.target.tagName === 'BUTTON' || 
+          e.target.tagName === 'INPUT' ||
+          e.target.tagName === 'TEXTAREA' ||
+          e.target.closest('a') || 
+          e.target.closest('button') ||
+          e.target.closest('input') ||
+          e.target.closest('textarea')) {
         setIsHovering(true);
       } else {
         setIsHovering(false);
@@ -28,6 +43,9 @@ export default function CustomCursor() {
       window.removeEventListener('mouseover', handleMouseOver);
     };
   }, []);
+
+  // No renderizar si está oculto
+  if (isHidden) return null;
 
   const variants = {
     default: {
@@ -61,7 +79,7 @@ export default function CustomCursor() {
           border: '2px solid var(--color-accent)',
           position: 'fixed',
           pointerEvents: 'none',
-          zIndex: 9999,
+          zIndex: 9998, // Justo debajo de los modales
           mixBlendMode: 'difference',
         }}
       />
@@ -84,7 +102,7 @@ export default function CustomCursor() {
           backgroundColor: 'var(--color-accent)',
           position: 'fixed',
           pointerEvents: 'none',
-          zIndex: 9999,
+          zIndex: 9998, // Justo debajo de los modales
         }}
       />
     </>

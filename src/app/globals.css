@@ -48,3 +48,32 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #a0df00;
 }
+
+
+/* Zonas donde el cursor debe ser normal */
+input,
+textarea,
+select,
+button,
+a,
+[role="dialog"],
+.admin-panel-modal,
+.photo-modal,
+.admin-panel-modal *,
+.photo-modal * {
+  cursor: auto !important;
+}
+
+/* Elementos interactivos con cursor pointer */
+button,
+a,
+[role="button"],
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+/* Elementos de texto con cursor text */
+input,
+textarea {
+  cursor: text !important;
+}
