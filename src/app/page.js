@@ -5,6 +5,7 @@ import PortfolioFotos from '@/components/PortfolioFotos';
 import VideosYoutube from '@/components/VideosYoutube';
 import Footer from '@/components/Footer';
 import CustomCursor from '@/components/CustomCursor';
+import AdminPanel from '@/components/AdminPanel';
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
         <VideosYoutube />
       </main>
       <Footer />
+      <AdminPanel />
     </>
   );
 }
