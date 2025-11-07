@@ -7,6 +7,7 @@ import VideosYoutube from '@/components/VideosYoutube';
 import Footer from '@/components/Footer';
 import CustomCursor from '@/components/CustomCursor';
 import AdminPanel from '@/components/AdminPanel';
+import Hero3D from '@/components/Hero3D';
 
 export default function Home() {
   return (
@@ -14,7 +15,7 @@ export default function Home() {
       <CustomCursor />
       <Header />
       <main>
-        <Hero />
+        <Hero3D />
         <PortfolioFotos />
         <VideosYoutube />
       </main>
