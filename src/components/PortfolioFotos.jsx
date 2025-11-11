@@ -7,6 +7,7 @@ import EditPhotoModal from './EditPhotoModal';
 import { FaEdit, FaTimes, FaImages } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function PortfolioFotos() {
   const [ref, inView] = useInView({
@@ -56,9 +57,10 @@ export default function PortfolioFotos() {
         .eq('in_portfolio', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
+      console.log('📸 Portfolio photos loaded:', data); // DEBUG
       setPortfolioPhotos(data || []);
     } catch (error) {
-      console.error('Error cargando portfolio:', error);
+      console.error('❌ Error cargando portfolio:', error);
     }
   };
 
@@ -175,12 +177,17 @@ export default function PortfolioFotos() {
                 <motion.div
                   key={photo.id}
                   variants={itemVariants}
-                  className="relative group overflow-hidden rounded-xl md:rounded-2xl aspect-square cursor-pointer"
+                  className="relative group overflow-hidden rounded-xl md:rounded-2xl aspect-square cursor-pointer bg-gray-900"
                   onClick={() => openModal(photo)}
                 >
+                  {/* DEBUG: Mostrar título de la foto */}
+                  <div className="absolute top-1 left-1 z-50 bg-yellow-400 text-black text-xs px-2 py-1 rounded">
+                    {photo.title || 'Sin título'}
+                  </div>
+
                   {/* Botones admin */}
                   {user && (
-                    <div className="absolute top-3 right-3 z-10 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-3 right-3 z-20 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -202,19 +209,23 @@ export default function PortfolioFotos() {
                     </div>
                   )}
 
-                  {/* Imagen de fondo */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                    style={{
-                      backgroundImage: `url(${photo.image})`
+                  {/* IMAGEN CON <IMG> TAG */}
+                  <img
+                    src={photo.image}
+                    alt={photo.title || 'Portfolio image'}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      console.error('❌ Error loading image:', photo.image);
+                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23333" width="400" height="400"/%3E%3Ctext fill="%23fff" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3EError%3C/text%3E%3C/svg%3E';
                     }}
+                    onLoad={() => console.log('✅ Image loaded:', photo.title)}
                   />
 
                   {/* Overlay oscuro */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300 z-10" />
 
                   {/* Contenido de texto */}
-                  <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-6">
+                  <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-6 z-10">
                     <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                       <span className="text-xs uppercase tracking-widest text-[var(--color-accent)] font-semibold mb-2 block">
                         {photo.category}
@@ -227,7 +238,7 @@ export default function PortfolioFotos() {
                   </div>
 
                   {/* Borde hover */}
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-accent)] transition-all duration-300 rounded-xl md:rounded-2xl pointer-events-none" />
+                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-accent)] transition-all duration-300 rounded-xl md:rounded-2xl pointer-events-none z-10" />
                 </motion.div>
               ))}
             </motion.div>
