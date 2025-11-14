@@ -1,11 +1,11 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaBars, FaTimes, FaSignInAlt, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaBars, FaTimes, FaSignInAlt, FaSignOutAlt, FaUser, FaShoppingBag } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
 import LoginModal from './LoginModal';
 import Link from 'next/link';
-
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -17,7 +17,6 @@ export default function Header() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -25,11 +24,9 @@ export default function Header() {
   // Verificar sesión
   useEffect(() => {
     checkUser();
-
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
     });
-
     return () => {
       authListener?.subscription?.unsubscribe();
     };
@@ -67,14 +64,11 @@ export default function Header() {
       'Videos': 'videos',
       'Contacto': 'contacto'
     };
-
     const sectionId = sectionMap[item];
     const element = document.getElementById(sectionId);
-    
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-    
     setMobileMenuOpen(false);
   };
 
@@ -83,72 +77,66 @@ export default function Header() {
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.6 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? 'bg-black/90 backdrop-blur-md shadow-lg' : 'bg-transparent'
-        }`}
+        className={`
+          fixed top-0 left-0 right-0 z-50 transition-all duration-300
+          ${scrolled 
+            ? 'glass-strong shadow-2xl py-3' 
+            : 'bg-transparent py-5'
+          }
+        `}
       >
-        <nav className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex-shrink-0"
-            >
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black">
+            <Link href="/" className="flex items-center gap-2 group cursor-pointer">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="text-2xl font-black"
+              >
                 <span className="text-white">JAVIER</span>{' '}
                 <span style={{ color: 'var(--color-accent)' }}>JIMÉNEZ</span>
-              </h1>
-            </motion.div>
+              </motion.div>
+            </Link>
 
             {/* Desktop Navigation */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="hidden lg:flex items-center gap-8"
-            >
-              <ul className="flex items-center gap-8">
-                {navItems.map((item, index) => (
-                  <motion.li
-                    key={item}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                  >
-                    <button
-                      onClick={() => scrollToSection(item)}
-                      className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-sm uppercase tracking-wider"
-                    >
-                      {item}
-                    </button>
-                  </motion.li>
-                ))}
-
-                {/* Enlace al álbum separado */}
-                <motion.li
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
+            <nav className="hidden lg:flex items-center gap-8">
+              {navItems.map((item, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => scrollToSection(item)}
+                  whileHover={{ y: -2 }}
+                  className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-sm uppercase tracking-wider"
                 >
-                  <Link href="/album">
-                    <button className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-sm uppercase tracking-wider">
-                      Álbum
-                    </button>
-                  </Link>
-                </motion.li>
+                  {item}
+                </motion.button>
+              ))}
+              
+              {/* Enlace al álbum */}
+              <Link href="/album">
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-sm uppercase tracking-wider"
+                >
+                  Álbum
+                </motion.button>
+              </Link>
 
-              </ul>
+              {/* ✅ NUEVO: Enlace a Tienda */}
+              <Link href="/tienda">
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  className="cursor-pointer flex items-center gap-2 text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-sm uppercase tracking-wider"
+                >
+                  <FaShoppingBag />
+                  Tienda
+                </motion.button>
+              </Link>
 
               {/* Botón Login/Logout Desktop */}
               {user ? (
                 <motion.button
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  whileHover={{ scale: 1.05 }}
                   onClick={handleLogout}
+                  whileHover={{ scale: 1.05 }}
                   className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-semibold text-sm transition-all duration-300"
                 >
                   <FaSignOutAlt />
@@ -156,75 +144,80 @@ export default function Header() {
                 </motion.button>
               ) : (
                 <motion.button
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  whileHover={{ scale: 1.05 }}
                   onClick={() => setShowLoginModal(true)}
+                  whileHover={{ scale: 1.05 }}
                   className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-accent)] hover:bg-white text-black font-semibold text-sm transition-all duration-300"
                 >
                   <FaSignInAlt />
                   Iniciar Sesión
                 </motion.button>
               )}
-            </motion.div>
+            </nav>
 
             {/* Tablet Navigation */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="hidden md:flex lg:hidden items-center gap-4"
-            >
-              <ul className="flex items-center gap-4">
-                {navItems.map((item, index) => (
-                  <motion.li
-                    key={item}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                  >
-                    <button
-                      onClick={() => scrollToSection(item)}
-                      className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-xs uppercase tracking-wider"
-                    >
-                      {item}
-                    </button>
-                  </motion.li>
-                ))}
-              </ul>
+            <nav className="hidden md:flex lg:hidden items-center gap-4">
+              {navItems.map((item, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => scrollToSection(item)}
+                  whileHover={{ y: -2 }}
+                  className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-xs uppercase tracking-wider"
+                >
+                  {item}
+                </motion.button>
+              ))}
+              
+              <Link href="/album">
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-xs uppercase tracking-wider"
+                >
+                  Álbum
+                </motion.button>
+              </Link>
+
+              {/* ✅ NUEVO: Tienda en tablet */}
+              <Link href="/tienda">
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-xs uppercase tracking-wider"
+                >
+                  <FaShoppingBag className="text-lg" />
+                </motion.button>
+              </Link>
 
               {/* Botón Login/Logout Tablet */}
               {user ? (
-                <button
+                <motion.button
                   onClick={handleLogout}
+                  whileHover={{ scale: 1.1 }}
                   className="cursor-pointer w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all"
                   title="Cerrar sesión"
                 >
-                  <FaSignOutAlt size={16} />
-                </button>
+                  <FaSignOutAlt />
+                </motion.button>
               ) : (
-                <button
+                <motion.button
                   onClick={() => setShowLoginModal(true)}
+                  whileHover={{ scale: 1.1 }}
                   className="cursor-pointer w-10 h-10 rounded-full bg-[var(--color-accent)] hover:bg-white text-black flex items-center justify-center transition-all"
                   title="Iniciar sesión"
                 >
-                  <FaSignInAlt size={16} />
-                </button>
+                  <FaSignInAlt />
+                </motion.button>
               )}
-            </motion.div>
+            </nav>
 
             {/* Mobile Menu Button */}
             <motion.button
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="cursor-pointer md:hidden w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--color-accent)] text-black hover:bg-white transition-colors"
             >
-              {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+              {mobileMenuOpen ? <FaTimes /> : <FaBars />}
             </motion.button>
           </div>
-        </nav>
+        </div>
       </motion.header>
 
       {/* Mobile Menu Overlay */}
@@ -233,7 +226,7 @@ export default function Header() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-40 bg-black/95 backdrop-blur-lg md:hidden"
+          className="fixed inset-0 bg-black/90 backdrop-blur-md z-40"
           onClick={() => setMobileMenuOpen(false)}
         >
           <motion.div
@@ -241,92 +234,103 @@ export default function Header() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="absolute right-0 top-0 h-full w-full max-w-sm bg-gray-900 shadow-2xl"
+            className="absolute right-0 top-0 h-full w-full sm:w-96 glass-strong p-6 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col h-full">
-              {/* Mobile Menu Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-800">
-                <h2 className="text-2xl font-black">
-                  <span className="text-white">MENÚ</span>
-                </h2>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="cursor-pointer w-10 h-10 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-red-500 text-white transition-colors"
+            {/* Mobile Menu Header */}
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-black text-white">MENÚ</h2>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="cursor-pointer w-10 h-10 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-red-500 text-white transition-colors"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            {/* Mobile Menu Items */}
+            <nav className="flex flex-col gap-3 mb-6">
+              {navItems.map((item, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => scrollToSection(item)}
+                  whileHover={{ x: 8 }}
+                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide"
                 >
-                  <FaTimes size={20} />
-                </button>
-              </div>
+                  {item}
+                </motion.button>
+              ))}
 
-              {/* Mobile Menu Items */}
-              <nav className="flex-1 overflow-y-auto p-6">
-                <ul className="space-y-2">
-                  {navItems.map((item, index) => (
-                    <motion.li
-                      key={item}
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <button
-                        onClick={() => scrollToSection(item)}
-                        className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide"
-                      >
-                        {item}
-                      </button>
-                    </motion.li>
-                  ))}
-                </ul>
+              <Link href="/album">
+                <motion.button
+                  onClick={() => setMobileMenuOpen(false)}
+                  whileHover={{ x: 8 }}
+                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide"
+                >
+                  Álbum
+                </motion.button>
+              </Link>
 
-                {/* Botón Login/Logout Mobile */}
-                <div className="mt-6">
-                  {user ? (
-                    <button
-                      onClick={handleLogout}
-                      className="cursor-pointer w-full px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3"
-                    >
-                      <FaSignOutAlt />
-                      Cerrar Sesión
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setShowLoginModal(true);
-                        setMobileMenuOpen(false);
-                      }}
-                      className="cursor-pointer w-full px-6 py-4 bg-[var(--color-accent)] hover:bg-white text-black rounded-lg transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3"
-                    >
-                      <FaSignInAlt />
-                      Iniciar Sesión
-                    </button>
-                  )}
-                </div>
+              {/* ✅ NUEVO: Tienda en móvil */}
+              <Link href="/tienda">
+                <motion.button
+                  onClick={() => setMobileMenuOpen(false)}
+                  whileHover={{ x: 8 }}
+                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide flex items-center gap-3"
+                >
+                  <FaShoppingBag />
+                  Tienda
+                </motion.button>
+              </Link>
+            </nav>
 
-                {/* Indicador de sesión */}
-                {user && (
-                  <div className="mt-4 p-4 bg-gray-800 rounded-lg">
-                    <div className="flex items-center gap-2 text-[var(--color-accent)]">
-                      <FaUser />
-                      <span className="text-sm">Sesión iniciada</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">{user.email}</p>
+            {/* Botón Login/Logout Mobile */}
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="cursor-pointer w-full px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3"
+              >
+                <FaSignOutAlt />
+                Cerrar Sesión
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowLoginModal(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="cursor-pointer w-full px-6 py-4 bg-[var(--color-accent)] hover:bg-white text-black rounded-lg transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3"
+              >
+                <FaSignInAlt />
+                Iniciar Sesión
+              </button>
+            )}
+
+            {/* Indicador de sesión */}
+            {user && (
+              <div className="mt-auto pt-6 border-t border-gray-800">
+                <div className="flex items-center gap-3 text-gray-400">
+                  <FaUser className="text-[var(--color-accent)]" />
+                  <div>
+                    <p className="text-xs text-gray-500">Sesión iniciada</p>
+                    <p className="text-sm text-white">{user.email}</p>
                   </div>
-                )}
-              </nav>
-
-              {/* Mobile Menu Footer */}
-              <div className="p-6 border-t border-gray-800">
-                <p className="text-gray-500 text-sm text-center">
-                  © 2025 Javier Jiménez
-                </p>
+                </div>
               </div>
+            )}
+
+            {/* Mobile Menu Footer */}
+            <div className="mt-6 pt-6 border-t border-gray-800">
+              <p className="text-center text-gray-500 text-sm">
+                © 2025 Javier Jiménez
+              </p>
             </div>
           </motion.div>
         </motion.div>
       )}
 
       {/* Modal de login */}
-      <LoginModal 
+      <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
         onLoginSuccess={(user) => {
