@@ -126,3 +126,63 @@ a, button, input, textarea, select, [role="button"] {
   transform: translate3d(0, 0, 0);
 }
 
+/* ===== OPTIMIZACIÓN DE ANIMACIONES PARA MÓVILES ===== */
+
+/* Forzar aceleración por hardware en elementos animados */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimizar todos los elementos con transiciones */
+[class*="transition"],
+[class*="duration"],
+[class*="hover:scale"],
+[class*="group-hover"] {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Optimizar imágenes para animaciones suaves */
+img {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Animaciones de scroll suaves */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimizar elementos con hover */
+.group:hover img {
+  transform: translateZ(0) scale(1.1);
+}
+
+/* Reducir complejidad de blur en móviles */
+@media (max-width: 768px) {
+  .glass,
+  .glass-strong,
+  .glass-dark,
+  .glass-accent {
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+  }
+  
+  /* Reducir sombras pesadas en móvil */
+  [class*="shadow-2xl"],
+  [class*="shadow-xl"] {
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Optimizar Framer Motion */
+[data-projection-id] {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+

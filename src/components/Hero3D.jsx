@@ -108,6 +108,19 @@ export default function Hero3D() {
     { icon: SiDocker, name: 'Docker' },
   ];
 
+  // Configuración optimizada de transiciones
+  const fastTransition = {
+    type: 'tween',
+    ease: [0.25, 0.1, 0.25, 1], // Cubic-bezier optimizado
+    duration: 0.5,
+  };
+
+  const mediumTransition = {
+    type: 'tween',
+    ease: [0.25, 0.1, 0.25, 1],
+    duration: 0.6,
+  };
+
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-black via-gray-900 to-black">
       {/* Canvas 3D en el fondo - OCULTO EN MÓVIL */}
@@ -139,15 +152,23 @@ export default function Hero3D() {
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
+          transition={mediumTransition}
           className="pt-20 md:pt-0"
+          style={{ 
+            willChange: 'transform, opacity',
+            transform: 'translateZ(0)',
+          }}
         >
           {/* Tagline - RESPONSIVE */}
           <motion.div
             className="flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base text-[var(--color-accent)] font-semibold mb-4 md:mb-6 uppercase tracking-widest"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ ...fastTransition, delay: 0.2 }}
+            style={{ 
+              willChange: 'opacity',
+              transform: 'translateZ(0)',
+            }}
           >
             <FaCode className="text-base md:text-xl" />
             <span className="hidden sm:inline">Javier Jiménez |</span>
@@ -157,19 +178,27 @@ export default function Hero3D() {
           {/* Título principal - TAMAÑOS AJUSTADOS */}
           <motion.h1 
             className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-4 md:mb-6 leading-tight"
-            initial={{ scale: 0.5, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ ...mediumTransition, delay: 0.1 }}
+            style={{ 
+              willChange: 'transform, opacity',
+              transform: 'translateZ(0)',
+            }}
           >
             <span className="text-white">CÓDIGO &</span>
             <br />
             <motion.span
               key={currentRole}
-              initial={{ y: 50, opacity: 0 }}
+              initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -50, opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              style={{ color: 'var(--color-accent)' }}
+              exit={{ y: -30, opacity: 0 }}
+              transition={fastTransition}
+              style={{ 
+                color: 'var(--color-accent)',
+                willChange: 'transform, opacity',
+                transform: 'translateZ(0)',
+              }}
               className="inline-block"
             >
               {roles[currentRole]}
@@ -181,24 +210,31 @@ export default function Hero3D() {
             className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-3 md:mb-4 max-w-3xl mx-auto px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 1 }}
+            transition={{ ...fastTransition, delay: 0.3 }}
+            style={{ 
+              willChange: 'opacity',
+              transform: 'translateZ(0)',
+            }}
           >
             Desarrollador full-stack apasionado por crear experiencias web únicas.
           </motion.p>
 
-          {/* Subtexto con cámara/dron - OCULTO EN MÓVILES MUY PEQUEÑOS */}
+          {/* Subtexto con cámara/dron */}
           <motion.div
             className="flex items-center justify-center gap-2 md:gap-3 mb-6 md:mb-8 text-gray-400 px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ ...fastTransition, delay: 0.4 }}
+            style={{ 
+              willChange: 'opacity',
+              transform: 'translateZ(0)',
+            }}
           >
             <FaCamera className="text-lg md:text-2xl text-[var(--color-accent)] flex-shrink-0" />
             <p className="text-xs sm:text-sm md:text-base text-center">
               En mi tiempo libre, exploro el mundo con mi{' '}
               <span className="text-white font-semibold">cámara</span> y{' '}
-              <span className="text-white font-semibold hidden xs:inline">dron</span>
-              <span className="text-white font-semibold xs:hidden">dron</span>
+              <span className="text-white font-semibold">dron</span>
             </p>
           </motion.div>
 
@@ -207,11 +243,19 @@ export default function Hero3D() {
             className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center mb-8 md:mb-12 px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
+            transition={{ ...mediumTransition, delay: 0.5 }}
+            style={{ 
+              willChange: 'transform, opacity',
+              transform: 'translateZ(0)',
+            }}
           >
             <button
               onClick={() => scrollToSection('portfolio')}
               className="cursor-pointer w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-[var(--color-accent)] text-black font-bold text-base md:text-lg rounded-full hover:scale-105 hover:shadow-2xl hover:shadow-[var(--color-accent)]/50 transition-all duration-300"
+              style={{ 
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
             >
               Ver Portfolio
             </button>
@@ -219,6 +263,10 @@ export default function Hero3D() {
             <button
               onClick={() => scrollToSection('contacto')}
               className="cursor-pointer w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 border-2 border-[var(--color-accent)] text-[var(--color-accent)] font-bold text-base md:text-lg rounded-full hover:bg-[var(--color-accent)] hover:text-black transition-all duration-300"
+              style={{ 
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
             >
               Contactar
             </button>
@@ -229,18 +277,30 @@ export default function Hero3D() {
             className="mb-8 md:mb-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
+            transition={{ ...fastTransition, delay: 0.6 }}
+            style={{ 
+              willChange: 'opacity',
+              transform: 'translateZ(0)',
+            }}
           >
             <p className="text-xs md:text-sm text-gray-500 mb-3 md:mb-4 uppercase tracking-wider">Stack Tecnológico</p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 px-4">
               {techStack.map((tech, index) => (
                 <motion.div
                   key={tech.name}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gray-900/80 border border-gray-800 rounded-lg hover:border-[var(--color-accent)] transition-all group backdrop-blur-sm"
-                  initial={{ opacity: 0, y: 20 }}
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 glass rounded-lg hover:glass-accent transition-all duration-300 group"
+                  initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 + index * 0.1 }}
+                  transition={{ 
+                    ...fastTransition,
+                    delay: 0.7 + index * 0.05,
+                  }}
                   whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ 
+                    willChange: 'transform, opacity',
+                    transform: 'translateZ(0)',
+                  }}
                 >
                   <tech.icon className="text-base md:text-xl text-gray-400 group-hover:text-[var(--color-accent)] transition-colors" />
                   <span className="text-xs md:text-sm text-gray-400 group-hover:text-white transition-colors">{tech.name}</span>
@@ -254,21 +314,49 @@ export default function Hero3D() {
             className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-6 max-w-5xl mx-auto px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.2, duration: 1 }}
+            transition={{ ...mediumTransition, delay: 0.8 }}
+            style={{ 
+              willChange: 'opacity',
+              transform: 'translateZ(0)',
+            }}
           >
-            <div className="text-center p-4 md:p-6 bg-gray-900/50 rounded-xl border border-gray-800 backdrop-blur-sm">
+            <div 
+              className="text-center p-4 md:p-6 glass rounded-2xl"
+              style={{ 
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
+            >
               <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--color-accent)] mb-1 md:mb-2">15+</h3>
               <p className="text-gray-400 text-xs md:text-sm">Proyectos Web</p>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-900/50 rounded-xl border border-gray-800 backdrop-blur-sm">
+            <div 
+              className="text-center p-4 md:p-6 glass rounded-2xl"
+              style={{ 
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
+            >
               <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--color-accent)] mb-1 md:mb-2">2+</h3>
               <p className="text-gray-400 text-xs md:text-sm">Años Exp.</p>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-900/50 rounded-xl border border-gray-800 backdrop-blur-sm">
+            <div 
+              className="text-center p-4 md:p-6 glass rounded-2xl"
+              style={{ 
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
+            >
               <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--color-accent)] mb-1 md:mb-2">200+</h3>
               <p className="text-gray-400 text-xs md:text-sm">Fotos</p>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-900/50 rounded-xl border border-gray-800 backdrop-blur-sm">
+            <div 
+              className="text-center p-4 md:p-6 glass rounded-2xl"
+              style={{ 
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
+            >
               <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--color-accent)] mb-1 md:mb-2">∞</h3>
               <p className="text-gray-400 text-xs md:text-sm">Ideas</p>
             </div>
@@ -280,13 +368,17 @@ export default function Hero3D() {
       <motion.div
         className="absolute bottom-8 md:bottom-10 left-1/2 transform -translate-x-1/2 hidden md:block"
         animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ 
+          willChange: 'transform',
+          transform: 'translateZ(0) translateX(-50%)',
+        }}
       >
         <div className="w-6 h-10 border-2 border-[var(--color-accent)] rounded-full flex justify-center pt-2">
           <motion.div
             className="w-1.5 h-1.5 bg-[var(--color-accent)] rounded-full"
             animate={{ y: [0, 16, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />
         </div>
       </motion.div>
