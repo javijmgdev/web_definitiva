@@ -2,21 +2,21 @@
 import { useState, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { FaTrash, FaSpinner, FaEdit, FaStar, FaHome, FaCamera, FaImages } from 'react-icons/fa';
+import { FaTrash, FaSpinner, FaEdit, FaStar, FaCamera, FaImages } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
 import PhotoModal from '@/components/PhotoModal';
 import EditPhotoModal from '@/components/EditPhotoModal';
 import CustomCursor from '@/components/CustomCursor';
 import AdminPanel from '@/components/AdminPanel';
-import Link from 'next/link';
+import Header from '@/components/Header';  // ✅ IMPORTADO
 
 export default function AlbumPage() {
   const [ref, inView] = useInView({
-    triggerOnce: true, // ✅ Solo animar una vez
+    triggerOnce: true,
     threshold: 0.1,
   });
 
-  const prefersReducedMotion = useReducedMotion(); // ✅ Detectar preferencias de animación
+  const prefersReducedMotion = useReducedMotion();
 
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,8 +25,6 @@ export default function AlbumPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  // ... (resto del código de efectos igual)
-  
   useEffect(() => {
     checkUser();
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -105,24 +103,23 @@ export default function AlbumPage() {
     setTimeout(() => setSelectedPhoto(null), 300);
   };
 
-  // ✅ Animaciones más ligeras
   const containerVariants = prefersReducedMotion ? {} : {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.05, // Reducido de 0.1 a 0.05
+        staggerChildren: 0.05,
       }
     }
   };
 
   const itemVariants = prefersReducedMotion ? {} : {
-    hidden: { opacity: 0, y: 20 }, // Reducido de y: 30
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.3, // Reducido de 0.5
+        duration: 0.3,
         ease: 'easeOut'
       }
     }
@@ -132,6 +129,7 @@ export default function AlbumPage() {
     return (
       <>
         <CustomCursor />
+        <Header />  {/* ✅ HEADER GLOBAL */}
         <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
           <div className="text-center">
             <FaSpinner className="animate-spin text-[var(--color-accent)] text-6xl mx-auto mb-4" />
@@ -145,52 +143,39 @@ export default function AlbumPage() {
   return (
     <>
       <CustomCursor />
+      <Header />  {/* ✅ HEADER GLOBAL */}
+      
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white relative overflow-hidden">
-        {/* ✅ Elementos decorativos SIMPLIFICADOS (sin animaciones pesadas en móvil) */}
+        {/* Elementos decorativos */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(183,255,0,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(183,255,0,.03)_1px,transparent_1px)] bg-[size:100px_100px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
           
-          {/* ✅ Gradientes SIN animación en móvil */}
           <div className="absolute top-20 right-20 w-96 h-96 bg-[var(--color-accent)] rounded-full blur-3xl opacity-10 hidden md:block" />
           <div className="absolute bottom-40 left-10 w-80 h-80 bg-blue-500 rounded-full blur-3xl opacity-10 hidden md:block" />
         </div>
 
-        {/* Header mejorado */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md shadow-lg border-b border-gray-800">
-          <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
-            <div className="flex items-center justify-between gap-4">
-              {/* Título con ícono - OPTIMIZADO PARA MÓVIL */}
-              <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-                <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center">
-                  <FaImages className="text-lg md:text-2xl text-[var(--color-accent)]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-lg md:text-2xl lg:text-3xl font-black truncate">
-                    <span style={{ color: 'var(--color-accent)' }}>ÁLBUM</span>{' '}
-                    <span className="hidden sm:inline">COMPLETO</span>
-                  </h1>
-                  <p className="text-xs text-gray-500 hidden md:block">Todas mis capturas</p>
-                </div>
-              </div>
-
-              {/* Botón volver - OPTIMIZADO */}
-              <Link href="/">
-                <button className="cursor-pointer flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-full bg-[var(--color-accent)] hover:bg-white text-black font-semibold transition-colors text-sm md:text-base whitespace-nowrap">
-                  <FaHome className="flex-shrink-0" />
-                  <span className="hidden sm:inline">Volver</span>
-                </button>
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* Contenido principal */}
-        <section className="pt-24 md:pt-32 pb-20 px-4 md:px-6 relative z-10" ref={ref}>
+        {/* ✅ TÍTULO DE LA PÁGINA (reemplaza el header antiguo) */}
+        <div className="pt-24 md:pt-32 pb-8 px-4 md:px-6 relative z-10">
           <div className="container mx-auto">
-            {/* Stats - SIMPLIFICADOS */}
-            <div className="flex flex-wrap gap-3 md:gap-4 mb-8 md:mb-12">
+            <div className="flex items-center gap-3 md:gap-4 mb-4">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center">
+                <FaImages className="text-2xl md:text-4xl text-[var(--color-accent)]" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black">
+                  <span style={{ color: 'var(--color-accent)' }}>ÁLBUM</span>{' '}
+                  <span className="text-white">COMPLETO</span>
+                </h1>
+                <p className="text-sm md:text-base text-gray-400 mt-1">
+                  Todas mis capturas fotográficas
+                </p>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap gap-3 md:gap-4 mb-8">
               <div className="p-3 md:p-4 bg-gray-900/80 border border-gray-800 rounded-xl backdrop-blur-sm flex-1 min-w-[120px]">
-                <p className="text-gray-400 text-xs md:text-sm mb-1">Total</p>
+                <p className="text-gray-400 text-xs md:text-sm mb-1">Total fotos</p>
                 <p className="text-2xl md:text-3xl font-black text-[var(--color-accent)]">
                   {albumPhotos.length}
                 </p>
@@ -198,7 +183,7 @@ export default function AlbumPage() {
               
               {user && (
                 <div className="p-3 md:p-4 bg-gray-900/80 border border-gray-800 rounded-xl backdrop-blur-sm flex-1 min-w-[120px]">
-                  <p className="text-gray-400 text-xs md:text-sm mb-1">Portfolio</p>
+                  <p className="text-gray-400 text-xs md:text-sm mb-1">En Portfolio</p>
                   <p className="text-2xl md:text-3xl font-black text-[var(--color-accent)]">
                     {albumPhotos.filter(p => p.in_portfolio).length}
                   </p>
@@ -212,13 +197,18 @@ export default function AlbumPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            {/* Grid de fotos - ✅ SIN whileHover en móvil */}
+        {/* Contenido principal */}
+        <section className="pb-20 px-4 md:px-6 relative z-10" ref={ref}>
+          <div className="container mx-auto">
+            {/* Grid de fotos */}
             {albumPhotos.length === 0 ? (
               <div className="text-center py-20 md:py-32">
                 <FaCamera className="text-5xl md:text-6xl text-gray-700 mx-auto mb-4 md:mb-6" />
-                <p className="text-gray-500 text-xl md:text-2xl mb-2">No hay fotos</p>
-                <p className="text-gray-600 text-sm">Añade fotos con el botón +</p>
+                <p className="text-gray-500 text-xl md:text-2xl mb-2">No hay fotos en el álbum</p>
+                <p className="text-gray-600 text-sm">Añade fotos con el panel de administración</p>
               </div>
             ) : (
               <motion.div
@@ -227,7 +217,7 @@ export default function AlbumPage() {
                 animate={inView ? "visible" : "hidden"}
                 className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"
               >
-                {albumPhotos.map((photo, index) => (
+                {albumPhotos.map((photo) => (
                   <motion.div
                     key={photo.id}
                     variants={itemVariants}

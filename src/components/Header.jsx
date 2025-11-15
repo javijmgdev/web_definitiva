@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaBars, FaTimes, FaSignInAlt, FaSignOutAlt, FaUser, FaShoppingBag } from 'react-icons/fa';
+import { FaBars, FaTimes, FaSignInAlt, FaSignOutAlt, FaUser, FaShoppingBag, FaBox } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
 import LoginModal from './LoginModal';
 import Link from 'next/link';
@@ -121,7 +121,7 @@ export default function Header() {
                 </motion.button>
               </Link>
 
-              {/* ✅ NUEVO: Enlace a Tienda */}
+              {/* Enlace a Tienda */}
               <Link href="/tienda">
                 <motion.button
                   whileHover={{ y: -2 }}
@@ -131,6 +131,19 @@ export default function Header() {
                   Tienda
                 </motion.button>
               </Link>
+
+              {/* ✅ NUEVO: Enlace a Pedidos (solo si está autenticado) */}
+              {user && (
+                <Link href="/admin/pedidos">
+                  <motion.button
+                    whileHover={{ y: -2 }}
+                    className="cursor-pointer flex items-center gap-2 text-white hover:text-[var(--color-accent)] transition-colors duration-300 font-semibold text-sm uppercase tracking-wider border-2 border-[var(--color-accent)] rounded-full px-4 py-2"
+                  >
+                    <FaBox />
+                    Pedidos
+                  </motion.button>
+                </Link>
+              )}
 
               {/* Botón Login/Logout Desktop */}
               {user ? (
@@ -176,7 +189,7 @@ export default function Header() {
                 </motion.button>
               </Link>
 
-              {/* ✅ NUEVO: Tienda en tablet */}
+              {/* Tienda en tablet */}
               <Link href="/tienda">
                 <motion.button
                   whileHover={{ y: -2 }}
@@ -185,6 +198,19 @@ export default function Header() {
                   <FaShoppingBag className="text-lg" />
                 </motion.button>
               </Link>
+
+              {/* ✅ NUEVO: Pedidos en tablet (solo si está autenticado) */}
+              {user && (
+                <Link href="/admin/pedidos">
+                  <motion.button
+                    whileHover={{ y: -2 }}
+                    className="cursor-pointer text-white hover:text-[var(--color-accent)] transition-colors duration-300 border-2 border-[var(--color-accent)] rounded-full w-9 h-9 flex items-center justify-center"
+                    title="Pedidos"
+                  >
+                    <FaBox className="text-sm" />
+                  </motion.button>
+                </Link>
+              )}
 
               {/* Botón Login/Logout Tablet */}
               {user ? (
@@ -271,7 +297,7 @@ export default function Header() {
                 </motion.button>
               </Link>
 
-              {/* ✅ NUEVO: Tienda en móvil */}
+              {/* Tienda en móvil */}
               <Link href="/tienda">
                 <motion.button
                   onClick={() => setMobileMenuOpen(false)}
@@ -282,6 +308,20 @@ export default function Header() {
                   Tienda
                 </motion.button>
               </Link>
+
+              {/* ✅ NUEVO: Pedidos en móvil (solo si está autenticado) */}
+              {user && (
+                <Link href="/admin/pedidos">
+                  <motion.button
+                    onClick={() => setMobileMenuOpen(false)}
+                    whileHover={{ x: 8 }}
+                    className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide flex items-center gap-3 border-2 border-[var(--color-accent)]"
+                  >
+                    <FaBox />
+                    Pedidos
+                  </motion.button>
+                </Link>
+              )}
             </nav>
 
             {/* Botón Login/Logout Mobile */}
