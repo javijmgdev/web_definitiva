@@ -1,113 +1,108 @@
 'use client';
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaEye } from 'react-icons/fa';
+import { FaShoppingCart, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 import { useCartStore } from '@/lib/cartStore';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 import ProductModal from './ProductModal';
 
-export default function ProductCard({ product }) {
-  const addItem = useCartStore((state) => state.addItem);
+export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
   const [showModal, setShowModal] = useState(false);
+  const addItem = useCartStore((state) => state.addItem);
 
-  const handleAddToCart = (e) => {
-    e.stopPropagation();
+  const handleAddToCart = () => {
     addItem(product);
-    toast.success(`${product.name} añadido al carrito`, {
-      icon: '🛒',
-      style: {
-        background: '#1a1a1a',
-        color: '#fff',
-        border: '1px solid #b7ff00',
-      },
-    });
+    toast.success(`${product.name} añadido al carrito`);
   };
 
   return (
     <>
       <motion.div
-        className="group relative glass rounded-2xl overflow-hidden cursor-pointer"
-        whileHover={{ y: -8 }}
-        transition={{ duration: 0.3 }}
-        onClick={() => setShowModal(true)}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="group relative glass rounded-2xl overflow-hidden hover:glass-accent transition-all duration-300"
       >
+        {/* Botones de admin (esquina superior derecha) */}
+        {isAdmin && (
+          <div className="absolute top-3 right-3 z-10 flex gap-2">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onEdit(product)}
+              className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg transition-colors"
+            >
+              <FaEdit />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onDelete(product)}
+              className="w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-colors"
+            >
+              <FaTrash />
+            </motion.button>
+          </div>
+        )}
+
         {/* Imagen */}
-        <div className="relative aspect-square overflow-hidden bg-gray-900">
+        <div className="relative h-64 overflow-hidden">
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
-          
-          {/* Overlay con botones */}
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowModal(true);
-              }}
-              className="w-12 h-12 rounded-full glass-accent flex items-center justify-center hover:scale-110 transition-transform"
-            >
-              <FaEye className="text-xl" />
-            </button>
-            <button
-              onClick={handleAddToCart}
-              className="w-12 h-12 rounded-full bg-[var(--color-accent)] text-black flex items-center justify-center hover:scale-110 transition-transform"
-            >
-              <FaShoppingCart className="text-xl" />
-            </button>
-          </div>
-
-          {/* Badge de stock bajo */}
-          {product.stock < 10 && product.stock > 0 && (
-            <div className="absolute top-3 right-3 px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
-              ¡Últimas {product.stock} unidades!
-            </div>
-          )}
-
-          {product.stock === 0 && (
-            <div className="absolute top-3 right-3 px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
-              Agotado
-            </div>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
-        {/* Info del producto */}
-        <div className="p-4 md:p-6">
-          <span className="text-xs text-[var(--color-accent)] font-semibold uppercase tracking-wider">
-            {product.category}
-          </span>
-          <h3 className="text-lg md:text-xl font-bold text-white mt-2 mb-1 line-clamp-2 group-hover:text-[var(--color-accent)] transition-colors">
-            {product.name}
-          </h3>
-          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-            {product.description}
-          </p>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-2xl md:text-3xl font-black text-[var(--color-accent)]">
-              €{product.price.toFixed(2)}
+        {/* Info */}
+        <div className="p-5">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-xl font-bold text-white line-clamp-1">{product.name}</h3>
+            <span className="text-2xl font-black text-[var(--color-accent)]">
+              €{product.price}
             </span>
+          </div>
+
+          {product.description && (
+            <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+              {product.description}
+            </p>
+          )}
+
+          {product.category && (
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-accent)]/20 text-[var(--color-accent)] mb-4">
+              {product.category}
+            </span>
+          )}
+
+          {/* Botones de acción */}
+          <div className="flex gap-2">
             <button
               onClick={handleAddToCart}
-              disabled={product.stock === 0}
-              className="px-4 py-2 bg-[var(--color-accent)] text-black font-bold rounded-lg hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 bg-[var(--color-accent)] text-black font-bold rounded-xl hover:bg-white transition-colors flex items-center justify-center gap-2"
             >
-              Añadir
+              <FaShoppingCart />
+              <span>Añadir</span>
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-4 py-3 glass-accent rounded-xl text-white hover:bg-white/20 transition-colors flex items-center justify-center"
+            >
+              <FaEye />
             </button>
           </div>
-        </div>
 
-        {/* Borde animado */}
-        <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-accent)] transition-all duration-300 rounded-2xl pointer-events-none" />
+          {/* Stock */}
+          {product.stock !== undefined && (
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              Stock: {product.stock} unidades
+            </p>
+          )}
+        </div>
       </motion.div>
 
-      {/* Modal de detalles */}
       {showModal && (
-        <ProductModal 
-          product={product} 
-          onClose={() => setShowModal(false)} 
-        />
+        <ProductModal product={product} onClose={() => setShowModal(false)} />
       )}
     </>
   );
