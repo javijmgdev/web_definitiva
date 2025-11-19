@@ -1,40 +1,50 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { MeshTransmissionMaterial, Environment, useMouse } from '@react-three/drei';
+import { motion, useSpring } from 'framer-motion';
+import * as THREE from 'three';
 
-export default function LiquidGlassCursor() {
+export default function CrystalCursor() {
   const [isHovering, setIsHovering] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Posición del ratón
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
+  const meshRef = useRef();
+  const { camera, viewport } = useThree();
 
-  // Configuración física suave
-  const springConfig = {
-    damping: 25,
-    stiffness: 350,
-    mass: 0.2,
-  };
+  // Suavizado de posición con spring (integrado con Framer Motion para consistencia)
+  const springPos = useSpring({ x: 0, y: 0 }, { damping: 25, stiffness: 350, mass: 0.2 });
 
-  const smoothX = useSpring(cursorX, springConfig);
-  const smoothY = useSpring(cursorY, springConfig);
+  // Geometría de flecha 3D (extrusión simple para forma Windows-like)
+  const arrowGeometry = useRef(new THREE.ExtrudeGeometry(
+    new THREE.Shape()
+      .moveTo(0, 0)
+      .lineTo(1, 0.3)
+      .lineTo(0.8, 0.3)
+      .lineTo(0.8, 1)
+      .lineTo(0.2, 1)
+      .lineTo(0.2, 0.3)
+      .lineTo(0, 0.3)
+      .moveTo(0.2, 0.7)
+      .lineTo(0.8, 0.7),
+    { depth: 0.1, bevelEnabled: false } // Extrusión delgada para cursor 3D
+  )).current;
 
   useEffect(() => {
     setIsMounted(true);
     const checkTouch = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     setIsTouchDevice(checkTouch());
-  }, []);
 
-  useEffect(() => {
     if (isTouchDevice) return;
 
-    const moveCursor = (e) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+      springPos.x.set(e.clientX / window.innerWidth - 0.5);
+      springPos.y.set(-(e.clientY / window.innerHeight - 0.5));
     };
 
     const handleMouseDown = () => setIsClicking(true);
@@ -48,7 +58,7 @@ export default function LiquidGlassCursor() {
       });
     };
 
-    window.addEventListener('mousemove', moveCursor);
+    window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
 
@@ -57,156 +67,97 @@ export default function LiquidGlassCursor() {
     handleHoverElements();
 
     return () => {
-      window.removeEventListener('mousemove', moveCursor);
+      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
       observer.disconnect();
     };
-  }, [isTouchDevice, cursorX, cursorY]);
+  }, [isTouchDevice, springPos]);
 
   if (!isMounted || isTouchDevice) return null;
 
   return (
-    <motion.div
-      style={{
-        x: smoothX,
-        y: smoothY,
-        translateX: -32, // Offset para centrar la punta de la flecha
-        translateY: -24,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: 64,
-        height: 48,
-        zIndex: 9999,
-        pointerEvents: 'none',
-        userSelect: 'none',
-        willChange: 'transform',
-      }}
-      animate={{
-        scale: isHovering || isClicking ? 1.1 : 1,
-        opacity: isHovering ? 0.9 : 1,
-      }}
-      transition={{ duration: 0.1 }}
-    >
-      {/* SVG para la forma de flecha Windows con efectos de liquid glass */}
-      <svg
-        width="64"
-        height="48"
-        viewBox="0 0 64 48"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+    <>
+      <motion.div
         style={{
-          filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.3))', // Halo sutil azulado
-          backdropFilter: 'blur(10px) saturate(1.2)', // Efecto de cristal translúcido
-          background: 'rgba(255, 255, 255, 0.1)', // Base translúcida
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999,
+          pointerEvents: 'none',
+          opacity: isHovering ? 0.9 : 1,
+          scale: (isHovering || isClicking) ? 1.1 : 1,
         }}
+        transition={{ duration: 0.1 }}
       >
-        {/* Definición de clip-path para la forma de flecha clásica de Windows */}
-        <defs>
-          <clipPath id="arrowClip">
-            <path d="M0 0 L64 24 L0 48 L12 24 Z" /> {/* Triángulo principal con remate inferior */}
-          </clipPath>
-          {/* Filtro para refracción/simulación de cristal curvado */}
-          <filter id="glassRefraction" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blurred" />
-            <feDisplacementMap
-              in="blurred"
-              in2="SourceGraphic"
-              scale="5"
-              xChannelSelector="R"
-              yChannelSelector="G"
-              result="displaced"
-            />
-            <feMerge>
-              <feMergeNode in="displaced" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          {/* Filtro para highlights y bordes refractados */}
-          <filter id="highlightRefraction">
-            <feGaussianBlur stdDeviation="1" result="highlightBlur" />
-            <feFlood floodColor="rgba(255, 255, 255, 0.6)" floodOpacity="0.5" result="highlightColor" />
-            <feComposite in="highlightColor" in2="highlightBlur" operator="in" result="highlight" />
-            <feMerge>
-              <feMergeNode in="highlight" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+        <Canvas
+          camera={{ position: [0, 0, 1], fov: 50 }}
+          gl={{
+            alpha: true,
+            antialias: true,
+            powerPreference: 'high-performance',
+          }}
+          style={{ background: 'transparent' }}
+          eventSource={document.body} // Para tracking global sin interferir
+        >
+          <Environment preset="city" /> {/* Iluminación ambiental para reflejos realistas */}
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
 
-        {/* Capa base translúcida con gradiente */}
-        <g clipPath="url(#arrowClip)">
-          <rect width="64" height="48" fill="url(#baseGradient)" filter="url(#glassRefraction)" />
-        </g>
+          <CursorMesh 
+            mousePos={mousePos}
+            springPos={springPos}
+            isHovering={isHovering}
+            isClicking={isClicking}
+            geometry={arrowGeometry}
+            viewport={viewport}
+          />
+        </Canvas>
+      </motion.div>
 
-        {/* Gradiente base para translucidez */}
-        <defs>
-          <linearGradient id="baseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="rgba(255, 255, 255, 0.15)" />
-            <stop offset="50%" stopColor="rgba(255, 255, 255, 0.05)" />
-            <stop offset="100%" stopColor="rgba(255, 255, 255, 0.1)" />
-          </linearGradient>
-        </defs>
-
-        {/* Borde principal con refracción (simulando cristal curvado) */}
-        <path
-          d="M0 0 L64 24 L0 48 L12 24 Z"
-          stroke="rgba(0, 0, 0, 0.2)"
-          strokeWidth="1"
-          fill="none"
-          filter="url(#glassRefraction)"
-          opacity="0.8"
-        />
-
-        {/* Highlight superior para efecto de luz en cristal */}
-        <path
-          d="M0 0 L64 24 L32 12 Z"
-          fill="url(#highlightGradient)"
-          filter="url(#highlightRefraction)"
-          opacity="0.7"
-        />
-
-        {/* Gradiente para highlight */}
-        <defs>
-          <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(255, 255, 255, 0.8)" />
-            <stop offset="100%" stopColor="rgba(255, 255, 255, 0.2)" />
-          </linearGradient>
-        </defs>
-
-        {/* Reflejos internos elípticos (gota de agua en bordes) */}
-        <ellipse
-          cx="20"
-          cy="24"
-          rx="8"
-          ry="4"
-          fill="rgba(255, 255, 255, 0.3)"
-          filter="url(#highlightRefraction)"
-          opacity="0.6"
-        />
-
-        {/* Borde exterior sutil para rematar el cristal */}
-        <path
-          d="M0 0 L64 24 L0 48 L12 24 Z"
-          stroke="rgba(255, 255, 255, 0.1)"
-          strokeWidth="0.5"
-          fill="none"
-        />
-
-        {/* Efecto de refracción en bordes inferiores (gota-like) */}
-        <path
-          d="M0 48 L12 24 L0 36 Z"
-          fill="rgba(59, 130, 246, 0.1)" // Tono azulado sutil
-          filter="url(#glassRefraction)"
-          opacity="0.5"
-        />
-      </svg>
-
-      {/* Ocultar cursor por defecto */}
       <style jsx global>{`
         body { cursor: none; }
       `}</style>
-    </motion.div>
+    </>
+  );
+}
+
+function CursorMesh({ mousePos, springPos, isHovering, isClicking, geometry, viewport }) {
+  const ref = useRef();
+  const mouse = useMouse(); // Para coordenadas precisas en 3D
+
+  useFrame(() => {
+    if (ref.current) {
+      // Convertir posición 2D a 3D (mouse following en plano XY, Z fijo para overlay)
+      const x = (mousePos.x / window.innerWidth - 0.5) * viewport.width * 0.1; // Escala grande
+      const y = -(mousePos.y / window.innerHeight - 0.5) * viewport.height * 0.1;
+      ref.current.position.set(x, y, 0);
+
+      // Rotación sutil para efecto dinámico en hover/click
+      if (isHovering || isClicking) {
+        ref.current.rotation.z += 0.05;
+      }
+    }
+  });
+
+  return (
+    <mesh ref={ref} geometry={geometry}>
+      <MeshTransmissionMaterial
+        color="white"
+        transmission={1} // Translucidez total
+        roughness={0.1} // Bordes suaves
+        ior={1.5} // Índice de refracción para cristal real
+        thickness={0.5} // Grosor para distorsión interna
+        distortion={0.3} // Efecto de refracción curvada (gota de agua)
+        chromaticAberration={0.05} // Separación de colores en bordes
+        backscattering={0.01} // Reflejos internos sutiles
+        attenuationColor="#ffffff"
+        attenuationDistance={0.1}
+        transparent
+        opacity={0.8}
+      />
+    </mesh>
   );
 }
