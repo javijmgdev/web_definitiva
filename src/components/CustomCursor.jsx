@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { MeshTransmissionMaterial, Environment, useMouse } from '@react-three/drei';
+import { MeshTransmissionMaterial, Environment } from '@react-three/drei';
 import { motion, useSpring } from 'framer-motion';
 import * as THREE from 'three';
 
@@ -12,12 +12,6 @@ export default function CrystalCursor() {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  const meshRef = useRef();
-  const { camera, viewport } = useThree();
-
-  // Suavizado de posición con spring (integrado con Framer Motion para consistencia)
-  const springPos = useSpring({ x: 0, y: 0 }, { damping: 25, stiffness: 350, mass: 0.2 });
 
   // Geometría de flecha 3D (extrusión simple para forma Windows-like)
   const arrowGeometry = useRef(new THREE.ExtrudeGeometry(
@@ -43,8 +37,6 @@ export default function CrystalCursor() {
 
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
-      springPos.x.set(e.clientX / window.innerWidth - 0.5);
-      springPos.y.set(-(e.clientY / window.innerHeight - 0.5));
     };
 
     const handleMouseDown = () => setIsClicking(true);
@@ -72,7 +64,7 @@ export default function CrystalCursor() {
       window.removeEventListener('mouseup', handleMouseUp);
       observer.disconnect();
     };
-  }, [isTouchDevice, springPos]);
+  }, [isTouchDevice]);
 
   if (!isMounted || isTouchDevice) return null;
 
@@ -108,11 +100,9 @@ export default function CrystalCursor() {
 
           <CursorMesh 
             mousePos={mousePos}
-            springPos={springPos}
             isHovering={isHovering}
             isClicking={isClicking}
             geometry={arrowGeometry}
-            viewport={viewport}
           />
         </Canvas>
       </motion.div>
@@ -124,9 +114,9 @@ export default function CrystalCursor() {
   );
 }
 
-function CursorMesh({ mousePos, springPos, isHovering, isClicking, geometry, viewport }) {
+function CursorMesh({ mousePos, isHovering, isClicking, geometry }) {
   const ref = useRef();
-  const mouse = useMouse(); // Para coordenadas precisas en 3D
+  const { viewport } = useThree();
 
   useFrame(() => {
     if (ref.current) {
