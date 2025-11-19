@@ -4,6 +4,7 @@ import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
@@ -12,11 +13,11 @@ export default function CustomCursor() {
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
   
-  // Spring configuración
+  // Spring configuración - MÁS RÁPIDO Y LIGERO
   const springConfig = { 
-    damping: 25,
-    stiffness: 400,
-    mass: 0.2,
+    damping: 20,
+    stiffness: 500,
+    mass: 0.3,
   };
   
   const smoothX = useSpring(cursorX, springConfig);
@@ -26,8 +27,8 @@ export default function CustomCursor() {
   const lastX = useRef(0);
   const lastY = useRef(0);
   const [velocity, setVelocity] = useState(0);
+  const [trails, setTrails] = useState([]);
 
-  // ✅ CORREGIDO: Moved setIsMounted to separate useEffect
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -58,6 +59,16 @@ export default function CustomCursor() {
       
       setVelocity(speed);
 
+      // Crear trail particles cuando hay movimiento rápido
+      if (speed > 20) {
+        setTrails(prev => [...prev.slice(-8), {
+          id: Date.now(),
+          x: e.clientX,
+          y: e.clientY,
+          velocity: speed
+        }]);
+      }
+
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
     };
@@ -66,6 +77,7 @@ export default function CustomCursor() {
     const handleMouseUp = () => setIsClicking(false);
 
     const handleHoverElements = () => {
+      // Elementos interactivos normales
       const hoverableElements = document.querySelectorAll(
         'button, a, input, textarea, [role="button"], .cursor-pointer'
       );
@@ -73,6 +85,22 @@ export default function CustomCursor() {
       hoverableElements.forEach((el) => {
         el.addEventListener('mouseenter', () => setIsHovering(true));
         el.addEventListener('mouseleave', () => setIsHovering(false));
+      });
+
+      // Elementos de imagen (para el efecto de zoom) - Excluir videos
+      const imageElements = document.querySelectorAll(
+        '[class*="group"]:has(img):not(.video-container):not([class*="video"])'
+      );
+
+      imageElements.forEach((el) => {
+        el.addEventListener('mouseenter', () => {
+          setIsHovering(true);
+          setIsHoveringImage(true);
+        });
+        el.addEventListener('mouseleave', () => {
+          setIsHovering(false);
+          setIsHoveringImage(false);
+        });
       });
     };
 
@@ -93,13 +121,49 @@ export default function CustomCursor() {
     };
   }, [isTouchDevice, cursorX, cursorY]);
 
+  // Limpiar trails antiguos
+  useEffect(() => {
+    if (trails.length > 0) {
+      const timer = setTimeout(() => {
+        setTrails(prev => prev.slice(1));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [trails]);
+
   if (!isMounted || isTouchDevice) return null;
 
   return (
     <>
-      {/* Punto central (cursor real) - Transición suave */}
+      {/* ======= PARTÍCULAS TRAIL (aparecen con velocidad alta) ======= */}
+      {trails.map((trail, index) => (
+        <motion.div
+          key={trail.id}
+          className="fixed top-0 left-0 pointer-events-none z-[9996]"
+          style={{
+            x: trail.x,
+            y: trail.y,
+            translateX: '-50%',
+            translateY: '-50%',
+          }}
+          initial={{ opacity: 0.6, scale: 1 }}
+          animate={{ opacity: 0, scale: 0.3 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{
+              backgroundColor: 'var(--color-accent)',
+              boxShadow: '0 0 10px var(--color-accent)',
+              opacity: 0.8 - (index * 0.1),
+            }}
+          />
+        </motion.div>
+      ))}
+
+      {/* ======= PUNTO CENTRAL MAGNÉTICO ======= */}
       <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9999] mix-blend-difference"
+        className="fixed top-0 left-0 pointer-events-none z-[9999]"
         style={{
           x: cursorX,
           y: cursorY,
@@ -108,25 +172,47 @@ export default function CustomCursor() {
         }}
       >
         <motion.div
-          className="w-2 h-2 rounded-full"
-          style={{
-            backgroundColor: 'var(--color-accent)',
-          }}
+          className="relative"
           animate={{
-            scale: isClicking ? 0.5 : isHovering ? 1.5 : 1,
+            scale: isClicking ? 0.6 : isHovering ? 0.8 : 1,
           }}
           transition={{
             type: 'spring',
-            stiffness: 300,
-            damping: 25,
-            mass: 0.5,
+            stiffness: 500,
+            damping: 30,
+            mass: 0.3,
           }}
-        />
+        >
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `radial-gradient(circle, var(--color-accent) 0%, transparent 70%)`,
+              filter: 'blur(8px)',
+              width: '24px',
+              height: '24px',
+              transform: 'translate(-50%, -50%)',
+              left: '50%',
+              top: '50%',
+            }}
+            animate={{
+              scale: isClicking ? 2 : isHovering ? 1.5 : 1,
+              opacity: isClicking ? 0.8 : isHovering ? 0.6 : 0.4,
+            }}
+          />
+          
+          <div
+            className="w-3 h-3 rounded-full relative z-10"
+            style={{
+              backgroundColor: 'var(--color-accent)',
+              boxShadow: `0 0 15px var(--color-accent), 0 0 30px rgba(183, 255, 0, 0.3)`,
+            }}
+          />
+        </motion.div>
       </motion.div>
 
-      {/* Círculo exterior - TRANSICIÓN SUAVE Y PROGRESIVA */}
+      {/* ======= ANILLO EXTERIOR ======= */}
       <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9998] mix-blend-difference"
+        className="fixed top-0 left-0 pointer-events-none z-[9998]"
         style={{
           x: smoothX,
           y: smoothY,
@@ -135,51 +221,192 @@ export default function CustomCursor() {
         }}
       >
         <motion.div
-          className="rounded-full border-2"
-          style={{
-            borderColor: 'var(--color-accent)',
-          }}
+          className="relative"
           animate={{
-            width: isHovering ? '60px' : '40px',
-            height: isHovering ? '60px' : '40px',
-            scale: isClicking ? 0.8 : 1,
-            rotate: velocity > 5 ? velocity * 2 : 0,
-            borderWidth: velocity > 10 ? '3px' : '2px',
+            width: isHoveringImage ? '70px' : isHovering ? '55px' : '35px',
+            height: isHoveringImage ? '70px' : isHovering ? '55px' : '35px',
+            scale: isClicking ? 0.7 : 1,
           }}
           transition={{
-            width: {
-              type: 'spring',
-              stiffness: 150,
-              damping: 20,
-              mass: 0.8,
-            },
-            height: {
-              type: 'spring',
-              stiffness: 150,
-              damping: 20,
-              mass: 0.8,
-            },
-            scale: {
-              type: 'spring',
-              stiffness: 200,
-              damping: 15,
-            },
-            rotate: {
-              type: 'spring',
-              stiffness: 100,
-              damping: 10,
-            },
-            borderWidth: {
-              duration: 0.2,
-            },
+            type: 'spring',
+            stiffness: 300,
+            damping: 20,
+            mass: 0.5,
           }}
-        />
+        >
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{
+              border: `2px solid var(--color-accent)`,
+              boxShadow: `
+                0 0 20px var(--color-accent),
+                inset 0 0 20px rgba(183, 255, 0, 0.1)
+              `,
+            }}
+            animate={{
+              rotate: velocity > 5 || isHoveringImage ? [0, 360] : 0,
+              borderWidth: velocity > 15 ? '3px' : '2px',
+            }}
+            transition={{
+              rotate: {
+                duration: isHoveringImage ? 1.5 : 2,
+                repeat: Infinity,
+                ease: 'linear',
+              },
+              borderWidth: {
+                duration: 0.3,
+              },
+            }}
+          />
+
+          {isHovering && (
+            <motion.div
+              className="absolute inset-0 rounded-full m-2"
+              style={{
+                border: `1px solid var(--color-accent)`,
+                opacity: 0.5,
+              }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ 
+                scale: 1, 
+                opacity: 0.5,
+                rotate: -360,
+              }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{
+                rotate: {
+                  duration: isHoveringImage ? 2 : 3,
+                  repeat: Infinity,
+                  ease: 'linear',
+                },
+              }}
+            />
+          )}
+
+          {isHoveringImage && (
+            <>
+              <motion.div
+                className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+              >
+                <div
+                  className="w-3 h-3 flex items-center justify-center text-[var(--color-accent)] font-bold text-xs"
+                  style={{
+                    textShadow: '0 0 10px var(--color-accent)',
+                  }}
+                >
+                  +
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+              >
+                <div
+                  className="w-3 h-3 flex items-center justify-center text-[var(--color-accent)] font-bold text-xs"
+                  style={{
+                    textShadow: '0 0 10px var(--color-accent)',
+                  }}
+                >
+                  -
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[var(--color-accent)]" />
+                <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-[var(--color-accent)]" />
+                <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-[var(--color-accent)]" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[var(--color-accent)]" />
+              </motion.div>
+            </>
+          )}
+
+          {isHovering && !isHoveringImage && (
+            <>
+              <motion.div
+                className="absolute w-1.5 h-1.5 rounded-full"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  boxShadow: '0 0 8px var(--color-accent)',
+                  top: '0',
+                  left: '50%',
+                  translateX: '-50%',
+                }}
+                animate={{
+                  rotate: 360,
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'linear',
+                }}
+              />
+              <motion.div
+                className="absolute w-1.5 h-1.5 rounded-full"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  boxShadow: '0 0 8px var(--color-accent)',
+                  bottom: '0',
+                  left: '50%',
+                  translateX: '-50%',
+                }}
+                animate={{
+                  rotate: 360,
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'linear',
+                  delay: 1,
+                }}
+              />
+            </>
+          )}
+        </motion.div>
       </motion.div>
 
-      {/* Estela de velocidad (trail effect) - Transición suave */}
-      {velocity > 15 && (
+      {isClicking && (
         <motion.div
-          className="fixed top-0 left-0 pointer-events-none z-[9997] mix-blend-difference"
+          className="fixed top-0 left-0 pointer-events-none z-[9997]"
+          style={{
+            x: cursorX,
+            y: cursorY,
+            translateX: '-50%',
+            translateY: '-50%',
+          }}
+        >
+          <motion.div
+            className="rounded-full border-2"
+            style={{
+              borderColor: 'var(--color-accent)',
+            }}
+            initial={{ width: '35px', height: '35px', opacity: 1 }}
+            animate={{ 
+              width: '120px',
+              height: '120px',
+              opacity: 0,
+            }}
+            transition={{
+              duration: 0.6,
+              ease: 'easeOut',
+            }}
+          />
+        </motion.div>
+      )}
+
+      {velocity > 25 && (
+        <motion.div
+          className="fixed top-0 left-0 pointer-events-none z-[9997]"
           style={{
             x: smoothX,
             y: smoothY,
@@ -187,20 +414,50 @@ export default function CustomCursor() {
             translateY: '-50%',
           }}
           initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 0.4, scale: 1.5 }}
-          exit={{ opacity: 0, scale: 2 }}
+          animate={{ opacity: 0.3, scale: 2 }}
+          exit={{ opacity: 0, scale: 3 }}
           transition={{ 
-            duration: 0.5,
+            duration: 0.6,
             ease: "easeOut"
           }}
         >
           <div
-            className="w-24 h-24 rounded-full border"
+            className="rounded-full"
             style={{
-              borderColor: 'var(--color-accent)',
-              opacity: 0.3,
+              width: '80px',
+              height: '80px',
+              background: `radial-gradient(circle, var(--color-accent) 0%, transparent 70%)`,
+              filter: 'blur(20px)',
             }}
           />
+        </motion.div>
+      )}
+
+      {isHoveringImage && (
+        <motion.div
+          className="fixed pointer-events-none z-[9999]"
+          style={{
+            x: cursorX,
+            y: cursorY,
+            translateX: '-50%',
+            translateY: '50px',
+          }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div
+            className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              color: 'var(--color-accent)',
+              border: '1px solid var(--color-accent)',
+              boxShadow: '0 0 20px rgba(183, 255, 0, 0.3)',
+            }}
+          >
+            Click para zoom
+          </div>
         </motion.div>
       )}
     </>

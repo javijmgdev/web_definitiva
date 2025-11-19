@@ -174,9 +174,9 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="photo-modal fixed inset-0 z-[9998] bg-black overflow-hidden"
+        className="photo-modal fixed inset-0 z-[9998] bg-black/95 backdrop-blur-sm overflow-hidden"
         onClick={onClose}
-        style={{ touchAction: 'none' }} // ✅ Deshabilitar gestos del navegador
+        style={{ touchAction: 'none' }}
       >
         {/* Botón cerrar */}
         <button
@@ -184,7 +184,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
             e.stopPropagation();
             onClose();
           }}
-          className="cursor-pointer fixed top-4 right-4 md:top-6 md:right-6 z-[9999] w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/80 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center backdrop-blur-sm border-2 border-white/10 hover:border-[var(--color-accent)] shadow-2xl"
+          className="cursor-pointer fixed top-4 right-4 md:top-6 md:right-6 z-[9999] w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#0A0F1C]/90 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center backdrop-blur-sm border-2 border-[var(--color-accent)]/30 hover:border-[var(--color-accent)] shadow-xl"
         >
           <FaTimes size={20} className="md:text-2xl" />
         </button>
@@ -194,7 +194,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
           <button
             onClick={handleZoomIn}
             disabled={zoomLevel >= 3}
-            className="cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/80 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center backdrop-blur-sm border-2 border-white/10 hover:border-[var(--color-accent)] disabled:opacity-30 disabled:cursor-not-allowed shadow-xl"
+            className="cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#0A0F1C]/90 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm border-2 border-[var(--color-accent)]/30 hover:border-[var(--color-accent)] shadow-xl"
             title="Aumentar zoom"
           >
             <FaSearchPlus size={16} className="md:text-lg" />
@@ -202,7 +202,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
           <button
             onClick={handleZoomOut}
             disabled={zoomLevel <= 1}
-            className="cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/80 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center backdrop-blur-sm border-2 border-white/10 hover:border-[var(--color-accent)] disabled:opacity-30 disabled:cursor-not-allowed shadow-xl"
+            className="cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#0A0F1C]/90 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm border-2 border-[var(--color-accent)]/30 hover:border-[var(--color-accent)] shadow-xl"
             title="Reducir zoom"
           >
             <FaSearchMinus size={16} className="md:text-lg" />
@@ -210,7 +210,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
           <button
             onClick={handleResetZoom}
             disabled={zoomLevel === 1}
-            className="cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/80 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center backdrop-blur-sm border-2 border-white/10 hover:border-[var(--color-accent)] disabled:opacity-30 disabled:cursor-not-allowed shadow-xl"
+            className="cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#0A0F1C]/90 hover:bg-[var(--color-accent)] text-white hover:text-black transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm border-2 border-[var(--color-accent)]/30 hover:border-[var(--color-accent)] shadow-xl"
             title="Restablecer zoom"
           >
             <FaExpand size={14} className="md:text-base" />
@@ -219,7 +219,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
 
         {/* Indicador de zoom */}
         {zoomLevel > 1 && (
-          <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-[9999] px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-black/80 text-white text-xs md:text-sm font-bold backdrop-blur-sm border-2 border-white/10 shadow-xl">
+          <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-[9999] px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-[#0A0F1C]/90 text-white text-xs md:text-sm font-bold backdrop-blur-sm border-2 border-[var(--color-accent)]/50 shadow-xl">
             {Math.round(zoomLevel * 100)}%
           </div>
         )}
@@ -229,14 +229,15 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className="relative w-full h-full flex items-center justify-center p-0 md:p-4"
+          className="relative w-full h-full flex items-center justify-center p-4 md:p-6"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex flex-col lg:grid lg:grid-cols-[1.5fr,1fr] gap-0 lg:gap-6 w-full h-full max-w-[95vw] max-h-[95vh]">
+          {/* ✅ Grid con imagen más ancha - Cambio de 1.5fr a 2fr */}
+          <div className="flex flex-col lg:grid lg:grid-cols-[2fr,auto] gap-4 lg:gap-6 w-full h-full max-w-[1800px]">
             
-            {/* IMAGEN con zoom */}
+            {/* ✅ IMAGEN - Con el mismo estilo del contenedor de texto y más ancha */}
             <div 
-              className="relative flex items-center justify-center overflow-hidden bg-black h-[70vh] lg:h-full lg:rounded-2xl select-none"
+              className="relative flex items-center justify-center overflow-hidden h-[65vh] lg:h-full rounded-2xl select-none bg-[#0A0F1C]/95 backdrop-blur-md border-2 border-[var(--color-accent)]/20 shadow-2xl p-4"
               onWheel={handleWheel}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
@@ -247,7 +248,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
               onTouchEnd={handleTouchEnd}
               style={{ 
                 cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                touchAction: 'none' // ✅ Deshabilitar zoom del navegador
+                touchAction: 'none'
               }}
             >
               <motion.div
@@ -264,7 +265,7 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
                   src={photo.image}
                   alt={photo.title}
                   fill
-                  className="object-contain pointer-events-none"
+                  className="object-contain pointer-events-none rounded-xl"
                   priority
                   quality={100}
                   unoptimized
@@ -273,64 +274,68 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
                 />
               </motion.div>
 
-              {/* ✅ Hint adaptativo - Solo visible para NO táctiles */}
+              {/* Hints de zoom */}
               {zoomLevel === 1 && !isTouchDevice && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className="hidden md:block absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm border border-white/10"
+                  className="hidden md:block absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-[#0A0F1C]/80 text-white text-xs backdrop-blur-md border border-[var(--color-accent)]/30"
                 >
                   Usa la rueda del ratón para hacer zoom
                 </motion.div>
               )}
 
-              {/* ✅ Hint para dispositivos táctiles */}
               {zoomLevel === 1 && isTouchDevice && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm border border-white/10"
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-[#0A0F1C]/80 text-white text-xs backdrop-blur-md border border-[var(--color-accent)]/30"
                 >
                   Pellizca para hacer zoom
                 </motion.div>
               )}
             </div>
 
-            {/* INFORMACIÓN */}
-            <div className="flex-1 flex flex-col space-y-4 md:space-y-6 overflow-y-auto p-4 md:p-6 lg:p-8 bg-gradient-to-b from-gray-900/95 to-black lg:rounded-2xl lg:bg-gradient-to-br lg:from-gray-900/50 lg:to-black/50 backdrop-blur-sm border-t lg:border lg:border-white/5 h-[30vh] lg:h-full">
-              <div>
-                <span className="text-xs uppercase tracking-widest text-[var(--color-accent)] font-semibold">
+            {/* ✅ INFORMACIÓN - Más compacta y centrada */}
+            <div className="flex flex-col justify-center space-y-4 overflow-y-auto p-6 lg:p-8 bg-[#0A0F1C]/95 rounded-2xl backdrop-blur-md border-2 border-[var(--color-accent)]/20 shadow-2xl lg:w-[420px] lg:max-w-[420px]">
+              
+              {/* Categoría y título - Más compactos */}
+              <div className="space-y-3">
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
                   {photo.category}
                 </span>
-                <h2 className="text-2xl md:text-4xl lg:text-5xl font-black text-white mt-2 mb-3 leading-tight">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight">
                   {photo.title}
                 </h2>
-                <p className="text-gray-300 text-sm md:text-base lg:text-lg leading-relaxed">
+                <p className="text-gray-300 text-sm md:text-base leading-relaxed">
                   {photo.description}
                 </p>
               </div>
 
-              {/* Metadatos */}
-              <div className="space-y-3 pt-4 border-t border-gray-800">
-                <div className="flex items-center gap-3 text-gray-400">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
-                    <FaUser className="text-[var(--color-accent)] text-sm md:text-base" />
+              {/* Metadatos - Diseño compacto y estilizado */}
+              <div className="space-y-3 pt-4 border-t border-[var(--color-accent)]/20">
+                
+                {/* Autor */}
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-[var(--color-accent)]/5 to-transparent border border-[var(--color-accent)]/10">
+                  <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center flex-shrink-0 border border-[var(--color-accent)]/30">
+                    <FaUser className="text-[var(--color-accent)] text-sm" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Autor</p>
-                    <p className="text-white font-semibold text-sm md:text-base">{photo.author}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Autor</p>
+                    <p className="text-white font-bold text-sm truncate">{photo.author}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 text-gray-400">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
-                    <FaCalendar className="text-[var(--color-accent)] text-sm md:text-base" />
+                {/* Fecha */}
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-[var(--color-accent)]/5 to-transparent border border-[var(--color-accent)]/10">
+                  <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center flex-shrink-0 border border-[var(--color-accent)]/30">
+                    <FaCalendar className="text-[var(--color-accent)] text-sm" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Fecha</p>
-                    <p className="text-white font-semibold text-sm md:text-base">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Fecha</p>
+                    <p className="text-white font-bold text-sm">
                       {new Date(photo.date).toLocaleDateString('es-ES', { 
                         year: 'numeric', 
                         month: 'long', 
@@ -340,24 +345,26 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-gray-400">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
-                    <FaMapMarkerAlt className="text-[var(--color-accent)] text-sm md:text-base" />
+                {/* Ubicación */}
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-[var(--color-accent)]/5 to-transparent border border-[var(--color-accent)]/10">
+                  <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center flex-shrink-0 border border-[var(--color-accent)]/30">
+                    <FaMapMarkerAlt className="text-[var(--color-accent)] text-sm" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Ubicación</p>
-                    <p className="text-white font-semibold text-sm md:text-base">{photo.location}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Ubicación</p>
+                    <p className="text-white font-bold text-sm truncate">{photo.location}</p>
                   </div>
                 </div>
 
+                {/* Cámara */}
                 {photo.camera && (
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
-                      <FaCamera className="text-[var(--color-accent)] text-sm md:text-base" />
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-[var(--color-accent)]/5 to-transparent border border-[var(--color-accent)]/10">
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center flex-shrink-0 border border-[var(--color-accent)]/30">
+                      <FaCamera className="text-[var(--color-accent)] text-sm" />
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Cámara</p>
-                      <p className="text-white font-semibold text-sm md:text-base">{photo.camera}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Cámara</p>
+                      <p className="text-white font-bold text-sm truncate">{photo.camera}</p>
                     </div>
                   </div>
                 )}

@@ -81,18 +81,18 @@ export default function ProductModal({ product, isOpen, onClose }) {
             </button>
           </div>
 
-          {/* ✅ Contenido - Layout adaptativo según orientación de imagen */}
+          {/* ✅ Contenido - Layout según orientación de imagen */}
           <div className={`p-4 md:p-6 ${
             imageOrientation === 'portrait' 
-              ? 'flex flex-col' // Imagen vertical: stack en móvil
-              : 'grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8' // Imagen horizontal/cuadrada: grid normal
+              ? 'grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 md:gap-8' // Imagen vertical: lado a lado (imagen izq, texto der)
+              : 'flex flex-col gap-6 md:gap-8' // Imagen horizontal/cuadrada: stack vertical (imagen arriba, texto abajo)
           }`}>
             
-            {/* ✅ IMAGEN con altura adaptativa */}
+            {/* ✅ IMAGEN - Tamaño según orientación */}
             <div className={`relative flex items-center justify-center bg-[#1A1F2E] rounded-2xl p-4 border-2 border-gray-800 overflow-hidden ${
               imageOrientation === 'portrait'
-                ? 'h-64 md:h-80 order-2 lg:order-1' // Imagen vertical más pequeña, orden cambiado en móvil
-                : 'min-h-[300px] md:min-h-[400px]' // Imagen horizontal tamaño normal
+                ? 'w-full lg:w-auto lg:max-w-[350px] min-h-[400px] lg:min-h-[600px]' // Imagen vertical: ocupa altura completa
+                : 'w-full min-h-[300px] md:min-h-[400px]' // Imagen horizontal/cuadrada: ocupa ancho completo
             }`}>
               <Image
                 src={product.image}
@@ -101,8 +101,8 @@ export default function ProductModal({ product, isOpen, onClose }) {
                 height={500}
                 className={`rounded-2xl ${
                   imageOrientation === 'portrait'
-                    ? 'w-auto h-full object-contain' // Imagen vertical: ajustar altura
-                    : 'w-full h-auto max-h-[500px] object-contain' // Otras: ajustar ancho
+                    ? 'w-auto h-full max-h-[600px] object-contain' // Imagen vertical: ajustar a altura
+                    : 'w-full h-auto max-h-[500px] object-contain' // Otras: ajustar a ancho
                 }`}
                 priority
                 quality={90}
@@ -110,10 +110,8 @@ export default function ProductModal({ product, isOpen, onClose }) {
               />
             </div>
 
-            {/* ✅ Información - Orden cambiado en móvil si imagen es vertical */}
-            <div className={`flex flex-col justify-between ${
-              imageOrientation === 'portrait' ? 'order-1 lg:order-2' : ''
-            }`}>
+            {/* ✅ Información del producto */}
+            <div className="flex flex-col justify-between">
               {/* Categoría */}
               {product.category && (
                 <span className="inline-block w-fit px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-[var(--color-accent)]/20 text-[var(--color-accent)] mb-3 md:mb-4">
@@ -156,7 +154,7 @@ export default function ProductModal({ product, isOpen, onClose }) {
                   <button
                     onClick={decrementQuantity}
                     disabled={quantity <= 1}
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-xl md:text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-xl md:text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FaMinus className="mx-auto text-sm md:text-base" />
                   </button>
@@ -178,7 +176,7 @@ export default function ProductModal({ product, isOpen, onClose }) {
                   <button
                     onClick={incrementQuantity}
                     disabled={quantity >= product.stock}
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-xl md:text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-xl md:text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FaPlus className="mx-auto text-sm md:text-base" />
                   </button>
@@ -196,7 +194,7 @@ export default function ProductModal({ product, isOpen, onClose }) {
               {/* Botón añadir */}
               <button
                 onClick={handleAddToCart}
-                className="w-full py-4 md:py-5 bg-[var(--color-accent)] text-black font-black text-lg md:text-xl rounded-xl hover:bg-white transition-all hover:scale-105 flex items-center justify-center gap-3 shadow-lg"
+                className="w-full py-4 md:py-5 bg-[var(--color-accent)] text-black font-black text-lg md:text-xl rounded-xl hover:bg-white transition-all hover:scale-105 flex items-center justify-center gap-3"
               >
                 <FaShoppingCart className="text-xl md:text-2xl" />
                 <span>Añadir al Carrito</span>
