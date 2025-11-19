@@ -4,6 +4,7 @@ import { FaTimes, FaShoppingCart, FaMinus, FaPlus } from 'react-icons/fa';
 import { useCartStore } from '@/lib/cartStore';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import Image from 'next/image'; // ✅ IMPORTAR
 
 export default function ProductModal({ product, onClose }) {
   const addItem = useCartStore((state) => state.addItem);
@@ -60,12 +61,16 @@ export default function ProductModal({ product, onClose }) {
 
           {/* Contenido */}
           <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Imagen - TAMAÑO REAL con esquinas redondeadas */}
-            <div className="flex items-center justify-center bg-[#1A1F2E] rounded-2xl p-4 border-2 border-gray-800">
-              <img
+            {/* ✅ IMAGEN OPTIMIZADA - TAMAÑO REAL con esquinas redondeadas */}
+            <div className="relative flex items-center justify-center bg-[#1A1F2E] rounded-2xl p-4 border-2 border-gray-800 overflow-hidden" style={{ minHeight: '400px' }}>
+              <Image
                 src={product.image}
                 alt={product.name}
-                className="w-full h-auto max-h-[500px] object-contain rounded-2xl" // ✅ object-contain + esquinas redondeadas
+                width={600}
+                height={500}
+                className="w-full h-auto max-h-[500px] object-contain rounded-2xl"
+                priority
+                quality={90}
               />
             </div>
 
@@ -113,7 +118,7 @@ export default function ProductModal({ product, onClose }) {
                   <button
                     onClick={decrementQuantity}
                     disabled={quantity <= 1}
-                    className="w-12 h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#1A1F2E] disabled:hover:text-white border-2 border-gray-800"
+                    className="w-12 h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <FaMinus className="mx-auto" />
                   </button>
@@ -135,7 +140,7 @@ export default function ProductModal({ product, onClose }) {
                   <button
                     onClick={incrementQuantity}
                     disabled={quantity >= product.stock}
-                    className="w-12 h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#1A1F2E] disabled:hover:text-white border-2 border-gray-800"
+                    className="w-12 h-12 rounded-xl bg-[#1A1F2E] text-white font-bold text-2xl hover:bg-[var(--color-accent)] hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <FaPlus className="mx-auto" />
                   </button>
@@ -153,7 +158,7 @@ export default function ProductModal({ product, onClose }) {
               {/* Botón añadir */}
               <button
                 onClick={handleAddToCart}
-                className="w-full py-5 bg-[var(--color-accent)] text-black font-black text-xl rounded-xl hover:bg-white transition-all hover:scale-105 flex items-center justify-center gap-3 shadow-lg shadow-[var(--color-accent)]/50"
+                className="w-full py-5 bg-[var(--color-accent)] text-black font-black text-xl rounded-xl hover:bg-white transition-all hover:scale-105 flex items-center justify-center gap-3 shadow-lg"
               >
                 <FaShoppingCart className="text-2xl" />
                 <span>Añadir al Carrito</span>

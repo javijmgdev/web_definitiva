@@ -12,11 +12,11 @@ export default function CustomCursor() {
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
   
-  // Spring más RÁPIDO y DINÁMICO
+  // Spring configuración
   const springConfig = { 
-    damping: 25,      // Antes: 30 (menos amortiguamiento = más rápido)
-    stiffness: 400,   // Antes: 200 (más rigidez = más responsive)
-    mass: 0.2,        // Antes: 0.5 (menos masa = más ágil)
+    damping: 25,
+    stiffness: 400,
+    mass: 0.2,
   };
   
   const smoothX = useSpring(cursorX, springConfig);
@@ -27,9 +27,12 @@ export default function CustomCursor() {
   const lastY = useRef(0);
   const [velocity, setVelocity] = useState(0);
 
+  // ✅ CORREGIDO: Moved setIsMounted to separate useEffect
   useEffect(() => {
     setIsMounted(true);
-    
+  }, []);
+
+  useEffect(() => {
     const checkTouchDevice = () => {
       return (
         'ontouchstart' in window ||
@@ -94,7 +97,7 @@ export default function CustomCursor() {
 
   return (
     <>
-      {/* Punto central (cursor real) - MÁS RÁPIDO */}
+      {/* Punto central (cursor real) - Transición suave */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9999] mix-blend-difference"
         style={{
@@ -114,14 +117,14 @@ export default function CustomCursor() {
           }}
           transition={{
             type: 'spring',
-            stiffness: 500,
-            damping: 20,
-            mass: 0.1,
+            stiffness: 300,
+            damping: 25,
+            mass: 0.5,
           }}
         />
       </motion.div>
 
-      {/* Círculo exterior - MÁS DINÁMICO */}
+      {/* Círculo exterior - TRANSICIÓN SUAVE Y PROGRESIVA */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9998] mix-blend-difference"
         style={{
@@ -135,19 +138,31 @@ export default function CustomCursor() {
           className="rounded-full border-2"
           style={{
             borderColor: 'var(--color-accent)',
-            width: isHovering ? '60px' : '40px',
-            height: isHovering ? '60px' : '40px',
           }}
           animate={{
+            width: isHovering ? '60px' : '40px',
+            height: isHovering ? '60px' : '40px',
             scale: isClicking ? 0.8 : 1,
-            rotate: velocity > 5 ? velocity * 2 : 0, // Rotación basada en velocidad
-            borderWidth: velocity > 10 ? '3px' : '2px', // Borde más grueso con velocidad
+            rotate: velocity > 5 ? velocity * 2 : 0,
+            borderWidth: velocity > 10 ? '3px' : '2px',
           }}
           transition={{
+            width: {
+              type: 'spring',
+              stiffness: 150,
+              damping: 20,
+              mass: 0.8,
+            },
+            height: {
+              type: 'spring',
+              stiffness: 150,
+              damping: 20,
+              mass: 0.8,
+            },
             scale: {
               type: 'spring',
-              stiffness: 300,
-              damping: 20,
+              stiffness: 200,
+              damping: 15,
             },
             rotate: {
               type: 'spring',
@@ -155,13 +170,13 @@ export default function CustomCursor() {
               damping: 10,
             },
             borderWidth: {
-              duration: 0.1,
+              duration: 0.2,
             },
           }}
         />
       </motion.div>
 
-      {/* Estela de velocidad (trail effect) */}
+      {/* Estela de velocidad (trail effect) - Transición suave */}
       {velocity > 15 && (
         <motion.div
           className="fixed top-0 left-0 pointer-events-none z-[9997] mix-blend-difference"
@@ -174,7 +189,10 @@ export default function CustomCursor() {
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 0.4, scale: 1.5 }}
           exit={{ opacity: 0, scale: 2 }}
-          transition={{ duration: 0.3 }}
+          transition={{ 
+            duration: 0.5,
+            ease: "easeOut"
+          }}
         >
           <div
             className="w-24 h-24 rounded-full border"

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FaPlus, FaTimes, FaCheck, FaSpinner, FaUpload, FaLink } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
 import LoginModal from './LoginModal';
+import Image from 'next/image'; // ✅ IMPORTAR
 
 export default function AdminPanel() {
   const [user, setUser] = useState(null);
@@ -400,13 +401,15 @@ export default function AdminPanel() {
                       Subir Imagen *
                     </label>
                     
+                    
                     {previewUrl && (
                       <div className="mb-4 relative aspect-video rounded-lg overflow-hidden bg-gray-800 shadow-lg">
-                        <img
+                        <Image
                           src={previewUrl}
                           alt="Preview"
-                          className="w-full h-full object-cover"
-                          loading="lazy" // ⭐ AÑADIDO: lazy loading
+                          fill
+                          sizes="(max-width: 768px) 100vw, 600px"
+                          className="object-cover"
                         />
                         <button
                           type="button"

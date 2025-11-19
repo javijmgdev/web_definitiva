@@ -5,6 +5,7 @@ import { useInView } from 'react-intersection-observer';
 import { FaTrash, FaSpinner, FaEdit, FaStar, FaCamera, FaImages } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
 import dynamic from 'next/dynamic'; // ⭐ AÑADIDO para lazy loading
+import Image from 'next/image'; // ✅ IMPORTAR
 
 // ⭐ OPTIMIZACIÓN 1: Lazy load de modales (solo cargan cuando se usan)
 const PhotoModal = dynamic(() => import('@/components/PhotoModal'), {
@@ -311,17 +312,18 @@ export default function AlbumPage() {
                         </div>
                       )}
 
-                      {/* Imagen */}
+                      
+                      {/* ✅ IMAGEN OPTIMIZADA */}
                       <div
                         onClick={() => openModal(photo)}
                         className="cursor-pointer w-full h-full relative"
                       >
-                        {/* ⭐ OPTIMIZACIÓN 10: Usar img con loading lazy */}
-                        <img
+                        <Image
                           src={photo.image}
                           alt={photo.title}
-                          loading="lazy"
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 md:group-hover:scale-110"
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="object-cover transition-transform duration-300 md:group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 md:group-hover:opacity-80 transition-opacity" />
                         
@@ -336,6 +338,7 @@ export default function AlbumPage() {
                           </div>
                         </div>
                       </div>
+
                     </motion.div>
                   ))}
                 </motion.div>

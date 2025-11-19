@@ -1,10 +1,11 @@
 'use client';
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import { useCartStore } from '@/lib/cartStore';
-import toast from 'react-hot-toast';
+import { FaShoppingCart, FaEdit, FaTrash, FaInfoCircle } from 'react-icons/fa';
+import { useCartStore } from '@/lib/cartStore'; // ✅ CORREGIDO: cartStore en lugar de store
+import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import ProductModal from './ProductModal';
+import Image from 'next/image';
 
 export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
   const [showModal, setShowModal] = useState(false);
@@ -44,12 +45,14 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
           </div>
         )}
 
-        {/* Imagen */}
-        <div className="relative h-64 overflow-hidden">
-          <img
+        {/* IMAGEN OPTIMIZADA */}
+        <div className="relative h-64 overflow-hidden bg-gray-900">
+          <Image
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover group-hover:scale-110 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
@@ -88,22 +91,17 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
               onClick={() => setShowModal(true)}
               className="px-4 py-3 glass-accent rounded-xl text-white hover:bg-white/20 transition-colors flex items-center justify-center"
             >
-              <FaEye />
+              <FaInfoCircle />
             </button>
           </div>
-
-          {/* Stock */}
-          {product.stock !== undefined && (
-            <p className="text-xs text-gray-500 mt-3 text-center">
-              Stock: {product.stock} unidades
-            </p>
-          )}
         </div>
       </motion.div>
 
-      {showModal && (
-        <ProductModal product={product} onClose={() => setShowModal(false)} />
-      )}
+      <ProductModal
+        product={product}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+      />
     </>
   );
 }

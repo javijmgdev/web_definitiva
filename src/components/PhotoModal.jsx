@@ -1,6 +1,7 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaCamera, FaMapMarkerAlt, FaCalendar, FaUser } from 'react-icons/fa';
+import Image from 'next/image'; // ✅ IMPORTAR
 
 export default function PhotoModal({ photo, isOpen, onClose }) {
   if (!isOpen || !photo) return null;
@@ -31,12 +32,16 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
           </button>
 
           <div className="grid md:grid-cols-2 gap-8 p-8">
-            {/* Imagen - TAMAÑO COMPLETO sin recortar */}
-            <div className="flex items-center justify-center bg-gray-800 rounded-2xl p-4">
-              <img
+            {/* ✅ IMAGEN OPTIMIZADA - TAMAÑO COMPLETO sin recortar */}
+            <div className="relative flex items-center justify-center bg-gray-800 rounded-2xl overflow-hidden" style={{ minHeight: '400px' }}>
+              <Image
                 src={photo.image}
                 alt={photo.title}
+                width={800}
+                height={600}
                 className="w-full h-auto max-h-[600px] object-contain rounded-2xl"
+                priority
+                quality={95}
               />
             </div>
 
@@ -82,25 +87,6 @@ export default function PhotoModal({ photo, isOpen, onClose }) {
                   </div>
                 )}
               </div>
-
-              {/* Configuración de cámara */}
-              {photo.settings && (
-                <div className="pt-4 border-t border-gray-700">
-                  <h3 className="text-sm uppercase tracking-wider text-[var(--color-accent)] font-semibold mb-2">
-                    Configuración
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2 text-gray-300">
-                    <div className="bg-gray-800 px-4 py-2 rounded-lg">
-                      <span className="text-xs text-gray-500">Lente</span>
-                      <p className="text-sm font-medium">{photo.lens}</p>
-                    </div>
-                    <div className="bg-gray-800 px-4 py-2 rounded-lg">
-                      <span className="text-xs text-gray-500">Ajustes</span>
-                      <p className="text-sm font-medium">{photo.settings}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </motion.div>

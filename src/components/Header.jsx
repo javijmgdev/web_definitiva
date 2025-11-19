@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FaBars, FaTimes, FaSignInAlt, FaSignOutAlt, FaUser, FaShoppingBag, FaBox } from 'react-icons/fa';
 import { supabase } from '@/lib/supabase';
 import LoginModal from './LoginModal';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';  // ✅ AÑADIDO
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -14,8 +14,8 @@ export default function Header() {
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   
-  const pathname = usePathname();  // ✅ AÑADIDO
-  const router = useRouter();      // ✅ AÑADIDO
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +23,12 @@ export default function Header() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // ✅ CORREGIDO: useCallback para evitar problemas de dependencias
+  const checkUser = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
   }, []);
 
   // Verificar sesión
@@ -34,12 +40,7 @@ export default function Header() {
     return () => {
       authListener?.subscription?.unsubscribe();
     };
-  }, []);
-
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
+  }, [checkUser]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -61,7 +62,6 @@ export default function Header() {
 
   const navItems = ['Inicio', 'Destacado', 'Videos', 'Contacto'];
 
-  // ✅ FUNCIÓN MEJORADA: navega si no estás en home, scroll si estás en home
   const scrollToSection = (item) => {
     const sectionMap = {
       'Inicio': 'hero',
@@ -93,8 +93,8 @@ export default function Header() {
         className={`
           fixed top-0 left-0 right-0 z-50 transition-all duration-300
           ${scrolled 
-            ? 'glass-strong shadow-2xl py-3' 
-            : 'bg-transparent py-5'
+            ? 'bg-black/95 backdrop-blur-xl shadow-2xl py-3 border-b border-white/5' 
+            : 'bg-black/80 backdrop-blur-md py-5 border-b border-white/10'
           }
         `}
       >
@@ -273,7 +273,7 @@ export default function Header() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="absolute right-0 top-0 h-full w-full sm:w-96 glass-strong p-6 flex flex-col"
+            className="absolute right-0 top-0 h-full w-full sm:w-96 bg-black/95 backdrop-blur-xl border-l border-white/10 p-6 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Mobile Menu Header */}
@@ -294,7 +294,7 @@ export default function Header() {
                   key={index}
                   onClick={() => scrollToSection(item)}
                   whileHover={{ x: 8 }}
-                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide"
+                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wider"
                 >
                   {item}
                 </motion.button>
@@ -304,7 +304,7 @@ export default function Header() {
                 <motion.button
                   onClick={() => setMobileMenuOpen(false)}
                   whileHover={{ x: 8 }}
-                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide"
+                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wider"
                 >
                   Álbum
                 </motion.button>
@@ -315,7 +315,7 @@ export default function Header() {
                 <motion.button
                   onClick={() => setMobileMenuOpen(false)}
                   whileHover={{ x: 8 }}
-                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide flex items-center gap-3"
+                  className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wider flex items-center gap-3"
                 >
                   <FaShoppingBag />
                   Tienda
@@ -328,7 +328,7 @@ export default function Header() {
                   <motion.button
                     onClick={() => setMobileMenuOpen(false)}
                     whileHover={{ x: 8 }}
-                    className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wide flex items-center gap-3 border-2 border-[var(--color-accent)]"
+                    className="cursor-pointer w-full text-left px-6 py-4 text-white hover:bg-[var(--color-accent)] hover:text-black rounded-lg transition-all duration-300 font-bold text-lg uppercase tracking-wider flex items-center gap-3"
                   >
                     <FaBox />
                     Pedidos
