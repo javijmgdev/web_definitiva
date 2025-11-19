@@ -39,7 +39,7 @@
     "zustand": "^5.0.8"
   },
   "optionalDependencies": {
-    "sharp": "^0.33.0"
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
