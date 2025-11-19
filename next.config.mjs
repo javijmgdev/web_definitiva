@@ -4,11 +4,8 @@ const nextConfig = {
   output: 'export',
   
   images: {
-    // ✅ CRÍTICO: Con output:'export' DEBES tener unoptimized:true
-    // Next.js Image optimization NO funciona en static export
     unoptimized: true,
     
-    // ✅ Permite imágenes de Supabase y otros dominios
     remotePatterns: [
       {
         protocol: 'https',
@@ -16,20 +13,18 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**', // ✅ Permite cualquier dominio HTTPS (imgur, etc)
+        hostname: '**',
       },
     ],
   },
 
-  // Base path para GitHub Pages (si sirves desde /web_definitiva)
-  basePath: '/web_definitiva',
-  assetPrefix: '/web_definitiva/',
+  // Base path SOLO para producción (GitHub Pages)
+  basePath: process.env.NODE_ENV === 'production' ? '/web_definitiva' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/web_definitiva/' : '',
 
-  // Optimizaciones generales
   compress: true,
   reactStrictMode: true,
 
-  // Turbopack config (Next.js 15+)
   turbopack: {},
 };
 
