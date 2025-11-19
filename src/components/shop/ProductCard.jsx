@@ -1,7 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import { FaShoppingCart, FaEdit, FaTrash, FaInfoCircle } from 'react-icons/fa';
-import { useCartStore } from '@/lib/cartStore'; // ✅ CORREGIDO: cartStore en lugar de store
+import { useCartStore } from '@/lib/cartStore';
 import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import ProductModal from './ProductModal';
@@ -53,6 +53,7 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-110 transition-transform duration-500"
+            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
@@ -97,6 +98,7 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
         </div>
       </motion.div>
 
+      {/* ✅ CORREGIDO: Pasar prop isOpen */}
       <ProductModal
         product={product}
         isOpen={showModal}

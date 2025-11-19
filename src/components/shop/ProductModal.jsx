@@ -4,9 +4,9 @@ import { FaTimes, FaShoppingCart, FaMinus, FaPlus } from 'react-icons/fa';
 import { useCartStore } from '@/lib/cartStore';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import Image from 'next/image'; // ✅ IMPORTAR
+import Image from 'next/image';
 
-export default function ProductModal({ product, onClose }) {
+export default function ProductModal({ product, isOpen, onClose }) {
   const addItem = useCartStore((state) => state.addItem);
   const [quantity, setQuantity] = useState(1);
 
@@ -31,6 +31,9 @@ export default function ProductModal({ product, onClose }) {
   };
 
   const subtotal = (product.price * quantity).toFixed(2);
+
+  // ✅ CRÍTICO: Solo renderizar si isOpen es true
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -61,7 +64,7 @@ export default function ProductModal({ product, onClose }) {
 
           {/* Contenido */}
           <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* ✅ IMAGEN OPTIMIZADA - TAMAÑO REAL con esquinas redondeadas */}
+            {/* IMAGEN OPTIMIZADA */}
             <div className="relative flex items-center justify-center bg-[#1A1F2E] rounded-2xl p-4 border-2 border-gray-800 overflow-hidden" style={{ minHeight: '400px' }}>
               <Image
                 src={product.image}
@@ -71,6 +74,7 @@ export default function ProductModal({ product, onClose }) {
                 className="w-full h-auto max-h-[500px] object-contain rounded-2xl"
                 priority
                 quality={90}
+                unoptimized
               />
             </div>
 
