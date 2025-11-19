@@ -1,10 +1,25 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'; // ⭐ AÑADIDO
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import ProductGrid from '@/components/shop/ProductGrid';
-import CartButton from '@/components/shop/CartButton';
-import CartSidebar from '@/components/shop/CartSidebar';
+import dynamic from 'next/dynamic'; // ⭐ AÑADIDO
+
+// ⭐ OPTIMIZACIÓN 1: Lazy load de componentes pesados
+const ProductGrid = dynamic(() => import('@/components/shop/ProductGrid'), {
+  loading: () => <div className="flex justify-center py-20"><div className="w-16 h-16 border-4 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" /></div>,
+  ssr: false,
+});
+
+const CartButton = dynamic(() => import('@/components/shop/CartButton'), {
+  loading: () => null,
+  ssr: false,
+});
+
+const CartSidebar = dynamic(() => import('@/components/shop/CartSidebar'), {
+  loading: () => null,
+  ssr: false,
+});
+
 import Header from '@/components/Header';
 import CustomCursor from '@/components/CustomCursor';
 import { Toaster, toast } from 'react-hot-toast';
@@ -18,18 +33,16 @@ export default function TiendaPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
-  useEffect(() => {
-    checkUser();
-    loadProducts();
-  }, []);
-
-  const checkUser = async () => {
+  // ⭐ OPTIMIZACIÓN 2: Memoizar checkUser
+  const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
-  };
+  }, []);
 
-  const loadProducts = async () => {
+  // ⭐ OPTIMIZACIÓN 3: Memoizar loadProducts
+  const loadProducts = useCallback(async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -40,16 +53,23 @@ export default function TiendaPage() {
       setProducts(data || []);
     } catch (error) {
       console.error('Error loading products:', error);
+      toast.error('Error al cargar productos');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleEdit = (product) => {
+  useEffect(() => {
+    checkUser();
+    loadProducts();
+  }, [checkUser, loadProducts]);
+
+  // ⭐ OPTIMIZACIÓN 4: Memoizar handleEdit y handleDelete
+  const handleEdit = useCallback((product) => {
     setEditingProduct(product);
-  };
+  }, []);
 
-  const handleDelete = async (product) => {
+  const handleDelete = useCallback(async (product) => {
     if (!confirm(`¿Eliminar "${product.name}"?`)) return;
 
     try {
@@ -61,23 +81,44 @@ export default function TiendaPage() {
       if (error) throw error;
 
       toast.success('Producto eliminado');
-      loadProducts();
+      
+      // ⭐ Actualización optimista
+      setProducts(prev => prev.filter(p => p.id !== product.id));
     } catch (error) {
       console.error('Error deleting product:', error);
       toast.error('Error al eliminar producto');
+      loadProducts(); // Recargar si hay error
     }
-  };
+  }, [loadProducts]);
 
-  const categories = ['all', ...new Set(products.map(p => p.category))];
-  const filteredProducts = selectedCategory === 'all' 
-    ? products 
-    : products.filter(p => p.category === selectedCategory);
+  // ⭐ OPTIMIZACIÓN 5: Memoizar categorías y productos filtrados
+  const categories = useMemo(() => 
+    ['all', ...new Set(products.map(p => p.category).filter(Boolean))],
+    [products]
+  );
+
+  const filteredProducts = useMemo(() => 
+    selectedCategory === 'all' 
+      ? products 
+      : products.filter(p => p.category === selectedCategory),
+    [selectedCategory, products]
+  );
 
   return (
     <>
       <CustomCursor />
       <Header />
-      <Toaster position="top-right" />
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#1a1a1a',
+            color: '#fff',
+            border: '1px solid var(--color-accent)',
+          },
+        }}
+      />
       <CartButton />
       <CartSidebar />
       
@@ -87,13 +128,13 @@ export default function TiendaPage() {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4 }} {/* ⭐ Reducido de 0.6 a 0.4 */}
             className="mb-12"
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <FaStore className="text-4xl text-[var(--color-accent)]" />
-                <h1 className="text-5xl md:text-7xl font-black text-white">
+                <h1 className="text-4xl md:text-7xl font-black text-white">
                   TIENDA <span className="text-[var(--color-accent)]">DEMO</span>
                 </h1>
               </div>
@@ -101,7 +142,7 @@ export default function TiendaPage() {
               {user && (
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-[var(--color-accent)] text-black font-bold rounded-xl hover:bg-white transition-all duration-300 hover:scale-105"
+                  className="cursor-pointer flex items-center gap-2 px-6 py-3 bg-[var(--color-accent)] text-black font-bold rounded-xl hover:bg-white transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[var(--color-accent)]/50"
                 >
                   <FaPlus />
                   <span>Añadir Producto</span>
@@ -109,7 +150,7 @@ export default function TiendaPage() {
               )}
             </div>
             
-            <p className="text-gray-400 text-lg md:text-xl max-w-3xl">
+            <p className="text-gray-400 text-base md:text-xl max-w-3xl">
               Ejemplo de e-commerce funcional. Sistema completo de gestión de productos y pedidos.
             </p>
           </motion.div>
@@ -119,7 +160,7 @@ export default function TiendaPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.2 }} {/* ⭐ Reducido de 0.3 a 0.2 */}
               className="mb-8 flex flex-wrap gap-3"
             >
               {categories.map((category) => (
@@ -128,7 +169,7 @@ export default function TiendaPage() {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-6 py-3 rounded-full font-semibold text-sm uppercase tracking-wider transition-all duration-300 ${
                     selectedCategory === category
-                      ? 'bg-[var(--color-accent)] text-black'
+                      ? 'bg-[var(--color-accent)] text-black shadow-lg'
                       : 'glass text-gray-400 hover:text-white hover:glass-accent'
                   }`}
                 >
@@ -152,7 +193,7 @@ export default function TiendaPage() {
               {products.length === 0 && user && (
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-accent)] text-black font-bold rounded-xl hover:bg-white transition-colors"
+                  className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-accent)] text-black font-bold rounded-xl hover:bg-white transition-colors"
                 >
                   <FaPlus />
                   <span>Añadir Primer Producto</span>
@@ -194,12 +235,17 @@ export default function TiendaPage() {
   );
 }
 
-// Modal unificado para crear/editar productos
+// ⭐ OPTIMIZACIÓN 6: Modal optimizado con memoización
 function ProductFormModal({ product, onClose, onSuccess }) {
   const isEditing = !!product;
   const [loading, setLoading] = useState(false);
   const [uploadMethod, setUploadMethod] = useState('url');
-  const [formData, setFormData] = useState({
+  
+  // ⭐ useRef para preview URL
+  const previewUrlRef = useRef(null);
+  
+  // ⭐ OPTIMIZACIÓN 7: useMemo para formData inicial
+  const initialFormData = useMemo(() => ({
     name: product?.name || '',
     description: product?.description || '',
     price: product?.price || '',
@@ -207,11 +253,14 @@ function ProductFormModal({ product, onClose, onSuccess }) {
     category: product?.category || '',
     stock: product?.stock || 100,
     available: product?.available ?? true,
-  });
+  }), [product]);
+
+  const [formData, setFormData] = useState(initialFormData);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(product?.image || '');
 
-  const handleImageUpload = async (e) => {
+  // ⭐ OPTIMIZACIÓN 8: useCallback para handleImageUpload
+  const handleImageUpload = useCallback((e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -226,10 +275,29 @@ function ProductFormModal({ product, onClose, onSuccess }) {
     }
 
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
+    
+    // ⭐ Limpiar URL anterior
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+    
+    // ⭐ Usar createObjectURL (más rápido que FileReader)
+    const objectUrl = URL.createObjectURL(file);
+    previewUrlRef.current = objectUrl;
+    setImagePreview(objectUrl);
+  }, []);
 
-  const uploadImageToSupabase = async (file) => {
+  // ⭐ Limpiar URL al desmontar
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
+
+  // ⭐ OPTIMIZACIÓN 9: useCallback para uploadImageToSupabase
+  const uploadImageToSupabase = useCallback(async (file) => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
@@ -237,7 +305,10 @@ function ProductFormModal({ product, onClose, onSuccess }) {
 
       const { error: uploadError } = await supabase.storage
         .from('product-images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+        });
 
       if (uploadError) throw uploadError;
 
@@ -251,9 +322,10 @@ function ProductFormModal({ product, onClose, onSuccess }) {
       toast.error('Error al subir imagen: ' + error.message);
       throw error;
     }
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
+  // ⭐ OPTIMIZACIÓN 10: useCallback para handleSubmit
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setLoading(true);
 
@@ -271,11 +343,11 @@ function ProductFormModal({ product, onClose, onSuccess }) {
       }
 
       const productData = {
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         price: parseFloat(formData.price),
         image: imageUrl,
-        category: formData.category || 'General',
+        category: formData.category.trim() || 'General',
         stock: parseInt(formData.stock),
         available: formData.available,
       };
@@ -304,7 +376,7 @@ function ProductFormModal({ product, onClose, onSuccess }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, uploadMethod, imageFile, uploadImageToSupabase, isEditing, product, onSuccess]);
 
   return (
     <AnimatePresence>
@@ -324,20 +396,21 @@ function ProductFormModal({ product, onClose, onSuccess }) {
         >
           {/* Header */}
           <div className="bg-[#050A14] p-4 flex justify-between items-center border-b border-[var(--color-accent)]/30 flex-shrink-0">
-            <h2 className="text-2xl font-black text-[var(--color-accent)]">
-              {isEditing ? 'Editar Producto' : 'Nuevo Producto'}
+            <h2 className="text-xl md:text-2xl font-black text-[var(--color-accent)]">
+              {isEditing ? '✏️ Editar Producto' : '✨ Nuevo Producto'}
             </h2>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-[#1A1F2E] hover:bg-red-500 transition-colors flex items-center justify-center text-white"
+              className="cursor-pointer w-10 h-10 rounded-full bg-[#1A1F2E] hover:bg-red-500 transition-colors flex items-center justify-center text-white"
+              aria-label="Cerrar modal"
             >
               <FaTimes />
             </button>
           </div>
 
           {/* Contenido con scroll */}
-          <div className="overflow-y-auto flex-1 p-6 bg-[#0A0F1C]">
-            <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="overflow-y-auto flex-1 p-4 md:p-6 bg-[#0A0F1C]">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
               {/* Método de imagen */}
               <div>
                 <label className="text-sm font-bold text-[var(--color-accent)] mb-3 block">
@@ -347,22 +420,24 @@ function ProductFormModal({ product, onClose, onSuccess }) {
                   <button
                     type="button"
                     onClick={() => setUploadMethod('url')}
+                    disabled={loading}
                     className={`flex-1 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 ${
                       uploadMethod === 'url'
                         ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]'
                         : 'bg-[#1A1F2E] text-gray-400 border-gray-700 hover:border-[var(--color-accent)]'
-                    }`}
+                    } disabled:opacity-50`}
                   >
                     <FaLink className="inline mr-2" /> URL
                   </button>
                   <button
                     type="button"
                     onClick={() => setUploadMethod('upload')}
+                    disabled={loading}
                     className={`flex-1 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 ${
                       uploadMethod === 'upload'
                         ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)]'
                         : 'bg-[#1A1F2E] text-gray-400 border-gray-700 hover:border-[var(--color-accent)]'
-                    }`}
+                    } disabled:opacity-50`}
                   >
                     <FaUpload className="inline mr-2" /> Subir
                   </button>
@@ -373,36 +448,60 @@ function ProductFormModal({ product, onClose, onSuccess }) {
               {uploadMethod === 'url' ? (
                 <div>
                   <label className="text-sm font-bold text-[var(--color-accent)] mb-2 block">
-                    URL de la Imagen *
+                    🔗 URL de la Imagen *
                   </label>
                   <input
                     type="url"
                     required
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                    disabled={loading}
+                    className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors disabled:opacity-50"
                     placeholder="https://ejemplo.com/imagen.jpg"
                   />
                 </div>
               ) : (
                 <div>
                   <label className="text-sm font-bold text-[var(--color-accent)] mb-2 block">
-                    Subir Imagen {!isEditing && '*'}
+                    📤 Subir Imagen {!isEditing && '*'}
                   </label>
-                  <label className="cursor-pointer block w-full px-4 py-8 bg-[#1A1F2E] rounded-xl border-2 border-dashed border-gray-700 hover:border-[var(--color-accent)] transition-colors text-center">
-                    <FaUpload className="text-4xl text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-400 font-semibold mb-1">
+                  <label className="cursor-pointer block w-full px-4 py-6 md:py-8 bg-[#1A1F2E] rounded-xl border-2 border-dashed border-gray-700 hover:border-[var(--color-accent)] transition-colors text-center">
+                    <FaUpload className="text-3xl md:text-4xl text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 font-semibold mb-1 text-sm md:text-base">
                       {imageFile ? imageFile.name : 'Click para seleccionar imagen'}
                     </p>
                     <p className="text-xs text-gray-600">PNG, JPG, WEBP (máx 5MB)</p>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      disabled={loading}
+                      className="hidden" 
+                    />
                   </label>
                   {imagePreview && (
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      className="mt-4 w-full h-40 object-cover rounded-xl border-2 border-[var(--color-accent)]" 
-                    />
+                    <div className="mt-4 relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        loading="lazy"
+                        className="w-full h-40 object-cover rounded-xl border-2 border-[var(--color-accent)]" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageFile(null);
+                          if (previewUrlRef.current) {
+                            URL.revokeObjectURL(previewUrlRef.current);
+                            previewUrlRef.current = null;
+                          }
+                          setImagePreview('');
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg"
+                      >
+                        <FaTimes size={14} />
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
@@ -417,7 +516,8 @@ function ProductFormModal({ product, onClose, onSuccess }) {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors disabled:opacity-50"
                   placeholder="Ej: MacBook Pro M3"
                 />
               </div>
@@ -430,8 +530,9 @@ function ProductFormModal({ product, onClose, onSuccess }) {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  disabled={loading}
                   rows={3}
-                  className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] resize-none transition-colors"
+                  className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] resize-none transition-colors disabled:opacity-50"
                   placeholder="Descripción breve del producto"
                 />
               </div>
@@ -449,7 +550,8 @@ function ProductFormModal({ product, onClose, onSuccess }) {
                     required
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                    disabled={loading}
+                    className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors disabled:opacity-50"
                     placeholder="19.99"
                   />
                 </div>
@@ -462,7 +564,8 @@ function ProductFormModal({ product, onClose, onSuccess }) {
                     min="0"
                     value={formData.stock}
                     onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                    disabled={loading}
+                    className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors disabled:opacity-50"
                     placeholder="100"
                   />
                 </div>
@@ -477,7 +580,8 @@ function ProductFormModal({ product, onClose, onSuccess }) {
                   type="text"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-[#1A1F2E] border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-accent)] transition-colors disabled:opacity-50"
                   placeholder="Ej: Electrónica, Ropa, Audio..."
                 />
               </div>
@@ -489,9 +593,10 @@ function ProductFormModal({ product, onClose, onSuccess }) {
                   id="available"
                   checked={formData.available}
                   onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
-                  className="w-6 h-6 rounded accent-[var(--color-accent)]"
+                  disabled={loading}
+                  className="w-6 h-6 rounded accent-[var(--color-accent)] disabled:opacity-50"
                 />
-                <label htmlFor="available" className="text-white font-semibold">
+                <label htmlFor="available" className="text-white font-semibold text-sm md:text-base">
                   👁️ Producto visible en tienda pública
                 </label>
               </div>
@@ -500,16 +605,16 @@ function ProductFormModal({ product, onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-[var(--color-accent)] text-black font-black text-lg rounded-xl hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-accent)]/50"
+                className="w-full py-3 md:py-4 bg-[var(--color-accent)] text-black font-black text-base md:text-lg rounded-xl hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-accent)]/50"
               >
                 {loading ? (
                   <>
-                    <div className="w-6 h-6 border-3 border-black border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 md:w-6 md:h-6 border-3 border-black border-t-transparent rounded-full animate-spin" />
                     <span>{isEditing ? 'Actualizando...' : 'Creando...'}</span>
                   </>
                 ) : (
                   <>
-                    <FaPlus className="text-xl" />
+                    <FaPlus className="text-lg md:text-xl" />
                     <span>{isEditing ? 'ACTUALIZAR PRODUCTO' : 'CREAR PRODUCTO'}</span>
                   </>
                 )}

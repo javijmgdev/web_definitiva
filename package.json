@@ -2,11 +2,27 @@
   "name": "portfolio-dinamico",
   "version": "0.1.0",
   "private": true,
+  "description": "Portfolio dinámico - sitio con album fotográfico, tienda demo y panel de administración (Next.js)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javijmgdev/web_definitiva.git"
+  },
+  "author": "Francisco-Javier-Jimenez-Garcia",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "export": "next export",
+    "preview": "next start",
+    "clean": "rimraf .next .out",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx .",
+    "format": "prettier --write .",
+    "analyze": "cross-env ANALYZE=true next build",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",
@@ -22,13 +38,32 @@
     "three": "^0.181.0",
     "zustand": "^5.0.8"
   },
+  "optionalDependencies": {
+    "sharp": "^0.33.0"
+  },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.0.0",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.0.0",
     "eslint-config-next": "16.0.1",
+    "eslint-config-prettier": "^9.0.0",
     "gh-pages": "^6.3.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.0",
     "postcss": "^8.5.6",
+    "prettier": "^2.8.8",
+    "rimraf": "^5.0.0",
+    "webpack-bundle-analyzer": "^4.5.0",
     "tailwindcss": "^3.4.18"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss,md,json}": [
+      "prettier --write"
+    ]
   }
 }
