@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'; // ⭐ AÑADIDO
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import dynamic from 'next/dynamic'; // ⭐ AÑADIDO
+import dynamic from 'next/dynamic';
 
 // ⭐ OPTIMIZACIÓN 1: Lazy load de componentes pesados
 const ProductGrid = dynamic(() => import('@/components/shop/ProductGrid'), {
@@ -128,7 +128,7 @@ export default function TiendaPage() {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }} {/* ⭐ Reducido de 0.6 a 0.4 */}
+            transition={{ duration: 0.4 }}
             className="mb-12"
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
@@ -142,7 +142,7 @@ export default function TiendaPage() {
               {user && (
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="cursor-pointer flex items-center gap-2 px-6 py-3 bg-[var(--color-accent)] text-black font-bold rounded-xl hover:bg-white transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[var(--color-accent)]/50"
+                  className="cursor-pointer flex items-center gap-2 px-6 py-3 bg-[var(--color-accent)] text-black font-bold rounded-xl hover:bg-white transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   <FaPlus />
                   <span>Añadir Producto</span>
@@ -160,7 +160,7 @@ export default function TiendaPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }} {/* ⭐ Reducido de 0.3 a 0.2 */}
+              transition={{ delay: 0.2 }}
               className="mb-8 flex flex-wrap gap-3"
             >
               {categories.map((category) => (
@@ -605,7 +605,7 @@ function ProductFormModal({ product, onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 md:py-4 bg-[var(--color-accent)] text-black font-black text-base md:text-lg rounded-xl hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-accent)]/50"
+                className="w-full py-3 md:py-4 bg-[var(--color-accent)] text-black font-black text-base md:text-lg rounded-xl hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
                 {loading ? (
                   <>

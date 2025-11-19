@@ -2,7 +2,7 @@
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { motion } from 'framer-motion';
-import { useRef, Suspense, useState, useEffect, useMemo, memo } from 'react'; // ⭐ AÑADIDO: useMemo, memo
+import { useRef, Suspense, useState, useEffect, useMemo, memo } from 'react';
 import { FaCode, FaCamera } from 'react-icons/fa';
 import { SiReact, SiNextdotjs, SiNodedotjs, SiPython, SiDocker } from 'react-icons/si';
 
@@ -32,7 +32,6 @@ const Camera3D = memo(function Camera3D() {
       </mesh>
       <mesh position={[0, 0, 0.8]}>
         <cylinderGeometry args={[0.5, 0.5, 0.05, 32]} rotation={[Math.PI / 2, 0, 0]} />
-        {/* ⭐ OPTIMIZACIÓN 3: Simplificar material físico en móviles */}
         <meshStandardMaterial 
           color="#b7ff00" 
           metalness={0.9} 
@@ -54,7 +53,6 @@ const Camera3D = memo(function Camera3D() {
 // ⭐ OPTIMIZACIÓN 4: Memoizar partículas y reducir cantidad en móvil
 const FloatingParticles = memo(function FloatingParticles({ isMobile }) {
   const particlesRef = useRef();
-  // ⭐ Reducir partículas en móvil: 100 -> 50
   const particleCount = isMobile ? 50 : 100;
   
   // ⭐ OPTIMIZACIÓN 5: useMemo para evitar recrear array en cada render
@@ -83,7 +81,7 @@ const FloatingParticles = memo(function FloatingParticles({ isMobile }) {
         />
       </bufferGeometry>
       <pointsMaterial 
-        size={isMobile ? 0.08 : 0.1} // ⭐ Partículas más pequeñas en móvil
+        size={isMobile ? 0.08 : 0.1}
         color="#b7ff00" 
         transparent 
         opacity={0.6}
@@ -96,7 +94,7 @@ const FloatingParticles = memo(function FloatingParticles({ isMobile }) {
 export default function Hero3D() {
   // ⭐ OPTIMIZACIÓN 6: Detectar dispositivo móvil
   const [isMobile, setIsMobile] = useState(false);
-  const [canvasLoaded, setCanvasLoaded] = useState(false); // ⭐ Lazy load Canvas
+  const [canvasLoaded, setCanvasLoaded] = useState(false);
   
   useEffect(() => {
     const checkMobile = () => {
@@ -106,7 +104,7 @@ export default function Hero3D() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    // ⭐ OPTIMIZACIÓN 7: Cargar Canvas después de 500ms (priorizar contenido)
+    // ⭐ OPTIMIZACIÓN 7: Cargar Canvas después de 500ms
     const timer = setTimeout(() => setCanvasLoaded(true), 500);
     
     return () => {
@@ -138,17 +136,17 @@ export default function Hero3D() {
     { icon: SiDocker, name: 'Docker' },
   ], []);
 
-  // ⭐ OPTIMIZACIÓN 9: Memoizar transiciones (no recrear objetos)
+  // ⭐ OPTIMIZACIÓN 9: Memoizar transiciones
   const fastTransition = useMemo(() => ({
     type: 'tween',
     ease: [0.25, 0.1, 0.25, 1],
-    duration: 0.3, // ⭐ Reducido de 0.5 a 0.3
+    duration: 0.3,
   }), []);
 
   const mediumTransition = useMemo(() => ({
     type: 'tween',
     ease: [0.25, 0.1, 0.25, 1],
-    duration: 0.5, // ⭐ Reducido de 0.6 a 0.5
+    duration: 0.5,
   }), []);
 
   return (
@@ -157,32 +155,31 @@ export default function Hero3D() {
       {!isMobile && canvasLoaded && (
         <div className="absolute inset-0 z-0 opacity-40">
           <Canvas
-            shadows={false} // ⭐ CRÍTICO: Desactivar sombras (muy costoso)
-            dpr={[1, 1.5]} // ⭐ IMPORTANTE: Limitar pixel ratio (antes era default [1, 2])
-            performance={{ min: 0.5 }} // ⭐ Activar throttling automático si FPS < 30
+            shadows={false}
+            dpr={[1, 1.5]}
+            performance={{ min: 0.5 }}
             gl={{ 
-              antialias: false, // ⭐ Desactivar antialias (mejor rendimiento)
-              powerPreference: 'high-performance', // ⭐ Priorizar rendimiento
+              antialias: false,
+              powerPreference: 'high-performance',
               alpha: true,
-              stencil: false, // ⭐ Desactivar stencil buffer
+              stencil: false,
               depth: true,
             }}
-            frameloop="demand" // ⭐ Renderizar solo cuando sea necesario
+            frameloop="demand"
           >
             <PerspectiveCamera makeDefault position={[0, 0, 8]} />
             
-            {/* ⭐ OPTIMIZACIÓN 11: Reducir intensidad de luces */}
-            <ambientLight intensity={0.3} /> {/* Antes: 0.5 */}
+            <ambientLight intensity={0.3} />
             <spotLight 
               position={[10, 10, 10]} 
               angle={0.15} 
               penumbra={1} 
-              intensity={0.7} // Antes: 1
-              castShadow={false} // ⭐ Sin sombras
+              intensity={0.7}
+              castShadow={false}
             />
             <pointLight 
               position={[-10, -10, -10]} 
-              intensity={0.3} // Antes: 0.5
+              intensity={0.3}
               color="#b7ff00" 
             />
             
@@ -195,10 +192,10 @@ export default function Hero3D() {
               enableZoom={false} 
               enablePan={false}
               autoRotate
-              autoRotateSpeed={0.3} // ⭐ Reducido de 0.5
+              autoRotateSpeed={0.3}
               maxPolarAngle={Math.PI / 2}
               minPolarAngle={Math.PI / 2}
-              enableDamping={true} // ⭐ Movimiento más suave
+              enableDamping={true}
               dampingFactor={0.05}
             />
           </Canvas>
@@ -218,7 +215,7 @@ export default function Hero3D() {
             className="flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base text-[var(--color-accent)] font-semibold mb-4 md:mb-6 uppercase tracking-widest"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ ...fastTransition, delay: 0.1 }} {/* ⭐ Delay reducido */}
+            transition={{ ...fastTransition, delay: 0.1 }}
           >
             <FaCode className="text-base md:text-xl" />
             <span className="hidden sm:inline">Javier Jiménez |</span>
@@ -230,13 +227,13 @@ export default function Hero3D() {
             className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-4 md:mb-6 leading-tight"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ ...mediumTransition, delay: 0.05 }} {/* ⭐ Delay reducido */}
+            transition={{ ...mediumTransition, delay: 0.05 }}
           >
             <span className="text-white">PROGRAMADOR &</span>
             <br />
             <motion.span
               key={currentRole}
-              initial={{ y: 20, opacity: 0 }} {/* ⭐ Movimiento reducido de 30 a 20 */}
+              initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
               transition={fastTransition}
@@ -254,7 +251,7 @@ export default function Hero3D() {
             className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-3 md:mb-4 max-w-3xl mx-auto px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ ...fastTransition, delay: 0.15 }} {/* ⭐ Delay reducido */}
+            transition={{ ...fastTransition, delay: 0.15 }}
           >
             Desarrollador full-stack apasionado por crear experiencias web únicas.
           </motion.p>
@@ -264,7 +261,7 @@ export default function Hero3D() {
             className="flex items-center justify-center gap-2 md:gap-3 mb-6 md:mb-8 text-gray-400 px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ ...fastTransition, delay: 0.2 }} {/* ⭐ Delay reducido */}
+            transition={{ ...fastTransition, delay: 0.2 }}
           >
             <FaCamera className="text-lg md:text-2xl text-[var(--color-accent)] flex-shrink-0" />
             <p className="text-xs sm:text-sm md:text-base text-center">
@@ -278,11 +275,11 @@ export default function Hero3D() {
             className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center mb-8 md:mb-12 px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...mediumTransition, delay: 0.25 }} {/* ⭐ Delay reducido */}
+            transition={{ ...mediumTransition, delay: 0.25 }}
           >
             <button
               onClick={() => scrollToSection('portfolio')}
-              className="cursor-pointer w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-[var(--color-accent)] text-black font-bold text-base md:text-lg rounded-full hover:scale-105 hover:shadow-2xl hover:shadow-[var(--color-accent)]/50 transition-all duration-300"
+              className="cursor-pointer w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-[var(--color-accent)] text-black font-bold text-base md:text-lg rounded-full hover:scale-105 hover:shadow-2xl transition-all duration-300"
             >
               Fotos destacadas
             </button>
@@ -300,7 +297,7 @@ export default function Hero3D() {
             className="mb-8 md:mb-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ ...fastTransition, delay: 0.3 }} {/* ⭐ Delay reducido */}
+            transition={{ ...fastTransition, delay: 0.3 }}
           >
             <p className="text-xs md:text-sm text-gray-500 mb-3 md:mb-4 uppercase tracking-wider">Stack Tecnológico</p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 px-4">
@@ -308,11 +305,11 @@ export default function Hero3D() {
                 <motion.div
                   key={tech.name}
                   className="flex items-center gap-2 px-3 md:px-4 py-2 glass rounded-lg hover:glass-accent transition-all duration-300 group"
-                  initial={{ opacity: 0, y: 10 }} {/* ⭐ Movimiento reducido de 15 a 10 */}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ 
                     ...fastTransition,
-                    delay: 0.35 + index * 0.03, // ⭐ Delays más cortos (0.7 -> 0.35, 0.05 -> 0.03)
+                    delay: 0.35 + index * 0.03,
                   }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -329,7 +326,7 @@ export default function Hero3D() {
             className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-6 max-w-5xl mx-auto px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ ...mediumTransition, delay: 0.4 }} {/* ⭐ Delay reducido de 0.8 a 0.4 */}
+            transition={{ ...mediumTransition, delay: 0.4 }}
           >
             <div className="text-center p-4 md:p-6 glass rounded-2xl">
               <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--color-accent)] mb-1 md:mb-2">15+</h3>

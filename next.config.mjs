@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Export estático (GitHub Pages / hosting estático)
   output: 'export',
   images: {
     unoptimized: true,
@@ -10,42 +11,27 @@ const nextConfig = {
       },
     ],
   },
+
+  // Mantén esto solo si realmente sirves desde /web_definitiva (ej: GitHub Pages)
   basePath: '/web_definitiva',
   assetPrefix: '/web_definitiva/',
-  
-  // NUEVAS OPTIMIZACIONES
-  compress: true,
-  swcMinify: true,
-  reactStrictMode: true,
-  
-  webpack: (config, { isServer }) => {
-    // Optimizar three.js
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'three': 'three/build/three.module.js',
-    };
-    
-    // Code splitting mejorado
-    if (!isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          three: {
-            test: /[\\/]node_modules[\\/](three|@react-three)[\\/]/,
-            name: 'three',
-            priority: 10,
-          },
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendor',
-            priority: 5,
-          },
-        },
-      };
-    }
-    
-    return config;
-  },
-}
 
-export default nextConfig
+  // Optimizaciones generales
+  compress: true,
+  reactStrictMode: true,
+
+  // Turbopack: bloque vacío para evitar el warning de root/config
+  // Si más adelante quieres añadir reglas: https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack
+  turbopack: {
+    // optimizeCss: true,   // (opcional futuro)
+    // rules: [],           // (opcional futuro)
+  },
+
+  // NOTA:
+  // Se elimina la función webpack para evitar el conflicto con Turbopack.
+  // Si necesitas ese comportamiento (alias + splitChunks), usa:
+  //   1) next build --webpack
+  //   2) Añade de nuevo el bloque webpack y elimina turbopack
+};
+
+export default nextConfig;
